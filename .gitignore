@@ -1,10 +1,12 @@
 # Node / TypeScript
+# npm is the chosen package manager — package-lock.json is committed for
+# reproducible installs and CI caching. yarn.lock / pnpm-lock.yaml stay
+# ignored so they can't drift from the npm lockfile.
 node_modules/
 dist/
 build/
 *.tsbuildinfo
 .npmrc
-package-lock.json
 yarn.lock
 pnpm-lock.yaml
 
