@@ -9,7 +9,7 @@ The `convai-analytics-api` service owns the spec. This repo's copy is a frozen s
 ```bash
 make sync-openapi
 # or override the source URL:
-ANALYTICS_API_OPENAPI=https://api-preview.convai.com/v1/analytics/openapi.json make sync-openapi
+ANALYTICS_API_OPENAPI=https://analytics-api-preview.convai.com/v1/analytics/openapi.json make sync-openapi
 ```
 
 The fetched spec is written to `openapi/convai-analytics-api.json`. Commit it to record what API contract this version of the SDK was generated against.

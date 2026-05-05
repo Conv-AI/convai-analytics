@@ -7,8 +7,14 @@
  * named entry point per common question.
  */
 
-import { errorFromResponse, type ApiErrorPayload } from "./apiErrors.js";
 import {
+  errorFromResponse,
+  InvalidRangeError,
+  NotYetSupportedError,
+  type ApiErrorPayload,
+} from "./apiErrors.js";
+import {
+  type RelativeRange,
   type SummaryParams,
   type SummaryResponse,
   type TimeseriesParams,
@@ -28,8 +34,30 @@ import { ProvidersFacade } from "./resources/providers.js";
 import { ErrorsFacade } from "./resources/errors.js";
 import { UsageFacade } from "./resources/usage.js";
 
-const DEFAULT_BASE_URL = "https://api.convai.com/v1/analytics";
+const DEFAULT_BASE_URL = "https://analytics-api.convai.com/v1/analytics";
 const SDK_VERSION = "0.0.1";
+
+/**
+ * The exact set of relative-range tokens the analytics API accepts today.
+ * Mirrors `_CUBE_RANGE_TOKENS` in convai-analytics-api/routes/summary.py.
+ * When the API gains absolute start/end support, drop the validator and
+ * widen `SummaryParams` instead.
+ */
+const ALLOWED_RANGES: readonly RelativeRange[] = [
+  "last_15m",
+  "last_1h",
+  "last_6h",
+  "last_24h",
+  "last_7d",
+  "last_30d",
+] as const;
+
+function validateRange(range: string | undefined): void {
+  if (range === undefined) return;
+  if (!(ALLOWED_RANGES as readonly string[]).includes(range)) {
+    throw new InvalidRangeError(range, ALLOWED_RANGES);
+  }
+}
 
 export interface ConvaiAnalyticsOptions {
   /** Convai API key. Falls back to `CONVAI_API_KEY` env var. */
@@ -83,22 +111,23 @@ export class ConvaiAnalytics {
 
   /** `GET /v1/analytics/summary` — top-level KPIs over a window. */
   summary(params: SummaryParams = {}): Promise<SummaryResponse> {
+    validateRange(params.range);
     return this.get<SummaryResponse>("/summary", params);
   }
 
   /** `GET /v1/analytics/timeseries` — measure × granularity time series. */
-  timeseries(params: TimeseriesParams): Promise<TimeseriesResponse> {
-    return this.get<TimeseriesResponse>("/timeseries", params);
+  async timeseries(_params: TimeseriesParams): Promise<TimeseriesResponse> {
+    throw new NotYetSupportedError("/timeseries", "API Phase 2");
   }
 
   /** `GET /v1/analytics/breakdown` — group-by aggregation for one measure. */
-  breakdown(params: BreakdownParams): Promise<BreakdownResponse> {
-    return this.get<BreakdownResponse>("/breakdown", params);
+  async breakdown(_params: BreakdownParams): Promise<BreakdownResponse> {
+    throw new NotYetSupportedError("/breakdown", "API Phase 2");
   }
 
   /** `GET /v1/analytics/metrics/catalog` — what your plan can query. */
-  catalog(): Promise<CatalogResponse> {
-    return this.get<CatalogResponse>("/metrics/catalog", {});
+  async catalog(): Promise<CatalogResponse> {
+    throw new NotYetSupportedError("/metrics/catalog", "API Phase 2");
   }
 
   /**
@@ -106,10 +135,10 @@ export class ConvaiAnalytics {
    * Requires the `business` plan or higher (otherwise 403).
    * Backed by the BigQuery escape hatch on the server.
    */
-  regressionDetection(
-    params: RegressionDetectionParams,
+  async regressionDetection(
+    _params: RegressionDetectionParams,
   ): Promise<RegressionDetectionResponse> {
-    return this.get<RegressionDetectionResponse>("/regression-detection", params);
+    throw new NotYetSupportedError("/regression-detection", "API Phase 3");
   }
 
   /**
@@ -118,8 +147,8 @@ export class ConvaiAnalytics {
    * cannot be expressed via the named endpoints; prefer the named ones for
    * forward compatibility.
    */
-  query(cubeQuery: CubeQuery): Promise<CubeQueryResponse> {
-    return this.post<CubeQueryResponse>("/query", cubeQuery);
+  async query(_cubeQuery: CubeQuery): Promise<CubeQueryResponse> {
+    throw new NotYetSupportedError("POST /query", "API Phase 3");
   }
 
   // ---------- HTTP transport (used by resources/) ----------

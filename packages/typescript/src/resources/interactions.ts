@@ -1,4 +1,5 @@
 import type { ConvaiAnalytics } from "../client.js";
+import { NotYetSupportedError } from "../apiErrors.js";
 import type { InteractionTrace } from "../types.js";
 
 export class Interactions {
@@ -15,11 +16,7 @@ export class Interactions {
    * The agent-friendly entry point for "explain what happened in this trace"
    * and "generate a waterfall for this interaction" prompts.
    */
-  get(interactionId: string): Promise<InteractionTrace> {
-    if (!interactionId) throw new Error("interactions.get: interactionId is required");
-    return this.#client.get<InteractionTrace>(
-      `/interactions/${encodeURIComponent(interactionId)}`,
-      {},
-    );
+  async get(_interactionId: string): Promise<InteractionTrace> {
+    throw new NotYetSupportedError("/interactions/{id}", "API Phase 2");
   }
 }

@@ -9,7 +9,11 @@ from typing import Any
 import httpx
 
 from . import __version__ as _sdk_version
-from .errors import error_from_response
+from .errors import (
+    InvalidRangeError,
+    NotYetSupportedError,
+    error_from_response,
+)
 from .resources.errors_facade import ErrorsFacade
 from .resources.interactions import Interactions
 from .resources.latency import LatencyFacade
@@ -25,7 +29,42 @@ from .types import (
     TimeseriesResponse,
 )
 
-DEFAULT_BASE_URL = "https://api.convai.com/v1/analytics"
+DEFAULT_BASE_URL = "https://analytics-api.convai.com/v1/analytics"
+
+# Mirrors `_CUBE_RANGE_TOKENS` in convai-analytics-api/routes/summary.py.
+# When the API gains absolute start/end support, drop the validator and
+# widen the accepted summary kwargs.
+_ALLOWED_RANGES: tuple[str, ...] = (
+    "last_15m",
+    "last_1h",
+    "last_6h",
+    "last_24h",
+    "last_7d",
+    "last_30d",
+)
+# Backend `/summary` only reads these. Other CommonFilters land in API Phase 2.
+_ALLOWED_SUMMARY_PARAMS = frozenset(
+    {"range", "character_id", "app_key", "experience_id"},
+)
+
+
+def _validate_range(value: str | None) -> None:
+    if value is None:
+        return
+    if value not in _ALLOWED_RANGES:
+        raise InvalidRangeError(value, _ALLOWED_RANGES)
+
+
+def _validate_summary_params(params: dict[str, Any]) -> None:
+    _validate_range(params.get("range"))
+    extra = sorted(set(params) - _ALLOWED_SUMMARY_PARAMS)
+    if extra:
+        raise ValueError(
+            f"summary(): unsupported parameter(s) {extra}. "
+            f"Allowed: {sorted(_ALLOWED_SUMMARY_PARAMS)}. "
+            f"Additional filters (endUserId, metricName, provider, model, "
+            f"processor, status, startTime, endTime) land in API Phase 2.",
+        )
 
 
 class ConvaiAnalytics:
@@ -74,20 +113,28 @@ class ConvaiAnalytics:
     # ---------- Direct REST mappings ----------
 
     def summary(self, **params: Any) -> SummaryResponse:
-        """``GET /v1/analytics/summary`` — top-level KPIs over a window."""
+        """``GET /v1/analytics/summary`` — top-level KPIs over a window.
+
+        Accepted kwargs: ``range`` (one of ``last_15m | last_1h | last_6h |
+        last_24h | last_7d | last_30d``, default ``last_24h``),
+        ``character_id``, ``app_key``, ``experience_id``.
+        """
+        _validate_summary_params(params)
         return SummaryResponse.model_validate(self._get("/summary", params))
 
     def timeseries(self, **params: Any) -> TimeseriesResponse:
         """``GET /v1/analytics/timeseries`` — measure × granularity time series."""
-        return TimeseriesResponse.model_validate(self._get("/timeseries", params))
+        del params
+        raise NotYetSupportedError("/timeseries", "API Phase 2")
 
     def breakdown(self, **params: Any) -> BreakdownResponse:
         """``GET /v1/analytics/breakdown`` — group-by aggregation for one measure."""
-        return BreakdownResponse.model_validate(self._get("/breakdown", params))
+        del params
+        raise NotYetSupportedError("/breakdown", "API Phase 2")
 
     def catalog(self) -> CatalogResponse:
         """``GET /v1/analytics/metrics/catalog`` — what your plan can query."""
-        return CatalogResponse.model_validate(self._get("/metrics/catalog", {}))
+        raise NotYetSupportedError("/metrics/catalog", "API Phase 2")
 
     def regression_detection(self, **params: Any) -> RegressionDetectionResponse:
         """``GET /v1/analytics/regression-detection`` — rolling p95 regression vs baseline.
@@ -95,9 +142,8 @@ class ConvaiAnalytics:
         Requires the ``business`` plan or higher (otherwise 403).
         Backed by the BigQuery escape hatch on the server.
         """
-        return RegressionDetectionResponse.model_validate(
-            self._get("/regression-detection", params),
-        )
+        del params
+        raise NotYetSupportedError("/regression-detection", "API Phase 3")
 
     def query(self, cube_query: dict[str, Any]) -> CubeQueryResponse:
         """``POST /v1/analytics/query`` — restricted Cube passthrough.
@@ -106,7 +152,8 @@ class ConvaiAnalytics:
         query cannot be expressed via the named endpoints; prefer the named
         ones for forward compatibility.
         """
-        return CubeQueryResponse.model_validate(self._post("/query", cube_query))
+        del cube_query
+        raise NotYetSupportedError("POST /query", "API Phase 3")
 
     def close(self) -> None:
         self._http.close()

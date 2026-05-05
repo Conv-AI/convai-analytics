@@ -1,8 +1,8 @@
 # convai-analytics
 
-Agent-friendly client surface for the [Convai analytics API](https://api.convai.com/v1/analytics) — TypeScript SDK, Python SDK, CLI, prompt recipes, and chart recipes designed to be invoked from inside Claude Code, Codex, Cursor, or any coding agent.
+Agent-friendly client surface for the [Convai analytics API](https://analytics-api.convai.com/v1/analytics) — TypeScript SDK, Python SDK, CLI, prompt recipes, and chart recipes designed to be invoked from inside Claude Code, Codex, Cursor, or any coding agent.
 
-> **Status:** v0 scaffold. SDK function surface is in place; endpoint implementations land as the [`Conv-AI/convai-analytics-api`](https://github.com/Conv-AI/convai-analytics-api) backend ships Phase 4/5 routes.
+> **Status:** v0.1. `summary` is wired and live; `timeseries`, `breakdown`, `sessions`, `interactions`, `metrics/catalog` land in API Phase 2; `regression-detection` and `query` in Phase 3. Methods that target unshipped endpoints raise a typed `NotYetSupportedError` pre-flight rather than firing a request that would 404. Track rollout in [`Conv-AI/convai-analytics-api`](https://github.com/Conv-AI/convai-analytics-api).
 
 ---
 
@@ -22,7 +22,7 @@ The agent picks the right SDK call, our hosted analytics API runs the query agai
 
 ## What this is *not*
 
-- **Not a BigQuery client.** This repo never connects to BQ. All queries route through `api.convai.com/v1/analytics/*`, which enforces tenant isolation, plan gating, and rate limits server-side.
+- **Not a BigQuery client.** This repo never connects to BQ. All queries route through `analytics-api.convai.com/v1/analytics/*`, which enforces tenant isolation, plan gating, and rate limits server-side.
 - **Not a dashboard.** For the curated UI experience, see Convai Playground. This repo is the agent/SDK surface that the dashboard's "agent mode" will eventually share.
 - **Not a write API.** Read-only. No mutations to characters, configs, or telemetry.
 
@@ -31,7 +31,7 @@ The agent picks the right SDK call, our hosted analytics API runs the query agai
 ```
 convai-analytics/
 ├── docs/                       Concepts, auth, metrics reference, recipe index
-├── openapi/                    Mirror of api.convai.com/v1/analytics/openapi.json
+├── openapi/                    Mirror of analytics-api.convai.com/v1/analytics/openapi.json
 ├── packages/
 │   ├── typescript/             @convai/analytics — primary SDK
 │   └── python/                 convai-analytics — Python SDK
@@ -67,13 +67,14 @@ const client = new ConvaiAnalytics({ apiKey: process.env.CONVAI_API_KEY! });
 const summary = await client.summary({ range: "last_24h" });
 console.log(`Sessions: ${summary.sessions}, p95 e2e: ${summary.p95EndToEndMs}ms`);
 
-const trace = await client.interactions.get("int_8a31...");
-console.log(trace.spans);                    // component waterfall
+// Phase 2 (not yet wired — throws NotYetSupportedError today):
+// const trace = await client.interactions.get("int_8a31...");
 ```
 
 ## Quickstart (programmatic, Python)
 
 ```python
+import os
 from convai_analytics import ConvaiAnalytics
 
 client = ConvaiAnalytics(api_key=os.environ["CONVAI_API_KEY"])
@@ -81,16 +82,18 @@ client = ConvaiAnalytics(api_key=os.environ["CONVAI_API_KEY"])
 summary = client.summary(range="last_24h")
 print(f"Sessions: {summary.sessions}, p95 e2e: {summary.p95_end_to_end_ms}ms")
 
-trace = client.interactions.get("int_8a31...")
-print(trace.spans)
+# Phase 2 (not yet wired — raises NotYetSupportedError today):
+# trace = client.interactions.get("int_8a31...")
 ```
 
 ## Quickstart (CLI)
 
 ```bash
 npx @convai/analytics-cli summary --range last_24h
-npx @convai/analytics-cli interaction int_8a31... --json
-npx @convai/analytics-cli chart waterfall --interaction int_8a31... --output trace.png
+
+# Phase 2 (not yet wired — exits with NotYetSupportedError today):
+# npx @convai/analytics-cli interaction int_8a31... --json
+# npx @convai/analytics-cli chart waterfall --interaction int_8a31... --output trace.png
 ```
 
 ## Authentication & plan gating

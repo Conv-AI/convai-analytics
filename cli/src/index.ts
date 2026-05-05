@@ -23,7 +23,7 @@ program
   .option("--api-key <key>", "API key (defaults to CONVAI_API_KEY env var)")
   .option(
     "--base-url <url>",
-    "API base URL (defaults to CONVAI_ANALYTICS_BASE_URL env var or https://api.convai.com/v1/analytics)",
+    "API base URL (defaults to CONVAI_ANALYTICS_BASE_URL env var or https://analytics-api.convai.com/v1/analytics)",
   )
   .option("--pretty", "Pretty-print JSON output", false);
 

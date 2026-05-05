@@ -2,11 +2,11 @@
 
 ## API key
 
-Every request to `api.convai.com/v1/analytics/*` carries the `CONVAI-API-KEY` header. The same key you use elsewhere in the Convai API.
+Every request to `analytics-api.convai.com/v1/analytics/*` carries the `CONVAI-API-KEY` header. The same key you use elsewhere in the Convai API.
 
 ```http
 GET /v1/analytics/summary?range=last_24h HTTP/1.1
-Host: api.convai.com
+Host: analytics-api.convai.com
 CONVAI-API-KEY: ck_live_...
 ```
 
@@ -86,12 +86,21 @@ The TS and Python SDKs raise typed exceptions:
 | 429 | `RateLimitError` (carries `retryAfter`) | `RateLimitError` (carries `retry_after`) |
 | 5xx | `ServerError` | `ServerError` |
 
+The SDKs also raise two **pre-flight** errors that never reach the wire (so they have no HTTP status):
+
+| Source | TS exception | Python exception | When |
+|---|---|---|---|
+| client-side | `InvalidRangeError` | `InvalidRangeError` | The `range` argument is not one of the accepted tokens. |
+| client-side | `NotYetSupportedError` | `NotYetSupportedError` | The SDK method maps to an endpoint the analytics API has not yet shipped (see [README endpoint catalog](../README.md#endpoint-catalog-v1) for status). |
+
+Both subclass `ConvaiAnalyticsError`, so a single `except ConvaiAnalyticsError` (Python) or `instanceof ConvaiAnalyticsError` (TS) handler catches them alongside HTTP errors.
+
 ## Local development against preview
 
-Convai runs a preview environment at `api-preview.convai.com`. To point the SDK at it:
+Convai runs a preview environment at `analytics-api-preview.convai.com`. To point the SDK at it:
 
 ```bash
-export CONVAI_ANALYTICS_BASE_URL=https://api-preview.convai.com/v1/analytics
+export CONVAI_ANALYTICS_BASE_URL=https://analytics-api-preview.convai.com/v1/analytics
 ```
 
 Use a preview-tier API key (issued separately from prod keys).

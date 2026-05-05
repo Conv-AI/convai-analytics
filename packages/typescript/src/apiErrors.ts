@@ -79,6 +79,47 @@ export class ServerError extends ConvaiAnalyticsError {
   }
 }
 
+/**
+ * Raised pre-flight when an SDK method targets an endpoint the analytics API
+ * has not shipped yet. The base class's `status` is 0 — these errors never
+ * leave the client.
+ */
+export class NotYetSupportedError extends ConvaiAnalyticsError {
+  readonly endpoint: string;
+  readonly plannedPhase: string;
+
+  constructor(endpoint: string, plannedPhase: string) {
+    super(0, {
+      code: "not_yet_supported",
+      message:
+        `${endpoint} is not yet implemented by the analytics API ` +
+        `(planned: ${plannedPhase}). Track rollout at ` +
+        `https://github.com/Conv-AI/convai-analytics-api.`,
+      details: { endpoint, plannedPhase },
+    });
+    this.name = "NotYetSupportedError";
+    this.endpoint = endpoint;
+    this.plannedPhase = plannedPhase;
+  }
+}
+
+/** Raised pre-flight when a `range` argument is not one of the allowed tokens. */
+export class InvalidRangeError extends ConvaiAnalyticsError {
+  readonly received: string;
+  readonly allowed: readonly string[];
+
+  constructor(received: string, allowed: readonly string[]) {
+    super(0, {
+      code: "invalid_range",
+      message: `Invalid range '${received}'. Allowed: ${allowed.join(", ")}.`,
+      details: { received, allowed: [...allowed] },
+    });
+    this.name = "InvalidRangeError";
+    this.received = received;
+    this.allowed = allowed;
+  }
+}
+
 export function errorFromResponse(
   status: number,
   payload: ApiErrorPayload,

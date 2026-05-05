@@ -1,12 +1,16 @@
 /**
  * End-to-end implementation of recipes/prompts/why-was-this-session-slow.md.
  *
- * Run:
+ * STATUS: requires API Phase 2 (sessions + interactions endpoints). Today
+ * the script catches `NotYetSupportedError` and exits with a clear message.
+ * For a working smoke example, see `account-summary.ts`.
+ *
+ * Run (once Phase 2 lands):
  *   export CONVAI_API_KEY=ck_live_...
  *   npx tsx examples/node/why-was-this-session-slow.ts s_8a31abcd1234
  */
 
-import { ConvaiAnalytics } from "@convai/analytics";
+import { ConvaiAnalytics, NotYetSupportedError } from "@convai/analytics";
 
 async function main(): Promise<void> {
   const sessionId = process.argv[2];

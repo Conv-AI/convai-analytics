@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+from ..errors import NotYetSupportedError
 from ..types import InteractionTrace
 
 if TYPE_CHECKING:
@@ -20,8 +21,5 @@ class Interactions:
         The agent-friendly entry point for "explain this trace" and
         "generate a waterfall for this interaction" prompts.
         """
-        if not interaction_id:
-            raise ValueError("interactions.get: interaction_id is required")
-        return InteractionTrace.model_validate(
-            self._client._get(f"/interactions/{interaction_id}", {}),
-        )
+        del interaction_id
+        raise NotYetSupportedError("/interactions/{id}", "API Phase 2")

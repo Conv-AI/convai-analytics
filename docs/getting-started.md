@@ -20,10 +20,10 @@ cd convai-analytics
 export CONVAI_API_KEY=ck_live_...
 ```
 
-Optional: override the API base URL (defaults to `https://api.convai.com/v1/analytics`):
+Optional: override the API base URL (defaults to `https://analytics-api.convai.com/v1/analytics`):
 
 ```bash
-export CONVAI_ANALYTICS_BASE_URL=https://api-preview.convai.com/v1/analytics
+export CONVAI_ANALYTICS_BASE_URL=https://analytics-api-preview.convai.com/v1/analytics
 ```
 
 ## 3a. Use it from a coding agent (recommended)

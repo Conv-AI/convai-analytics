@@ -60,6 +60,41 @@ class ServerError(ConvaiAnalyticsError):
     """5xx — backend failure. Safe to retry with backoff."""
 
 
+class NotYetSupportedError(ConvaiAnalyticsError):
+    """Raised pre-flight when an SDK method targets an endpoint the analytics
+    API has not shipped yet. ``status`` is 0 — never leaves the client."""
+
+    def __init__(self, endpoint: str, planned_phase: str) -> None:
+        message = (
+            f"{endpoint} is not yet implemented by the analytics API "
+            f"(planned: {planned_phase}). Track rollout at "
+            f"https://github.com/Conv-AI/convai-analytics-api."
+        )
+        super().__init__(
+            0,
+            "not_yet_supported",
+            message,
+            {"endpoint": endpoint, "planned_phase": planned_phase},
+        )
+        self.endpoint = endpoint
+        self.planned_phase = planned_phase
+
+
+class InvalidRangeError(ConvaiAnalyticsError):
+    """Raised pre-flight when a ``range`` argument is not one of the allowed tokens."""
+
+    def __init__(self, received: str, allowed: tuple[str, ...]) -> None:
+        message = f"Invalid range '{received}'. Allowed: {', '.join(allowed)}."
+        super().__init__(
+            0,
+            "invalid_range",
+            message,
+            {"received": received, "allowed": list(allowed)},
+        )
+        self.received = received
+        self.allowed = allowed
+
+
 def error_from_response(
     status: int,
     payload: dict[str, Any],

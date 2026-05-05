@@ -1,6 +1,6 @@
 .PHONY: help sync-openapi ts-install ts-build ts-test ts-lint py-install py-test py-lint cli-install cli-build clean
 
-ANALYTICS_API_OPENAPI ?= https://api-preview.convai.com/v1/analytics/openapi.json
+ANALYTICS_API_OPENAPI ?= https://analytics-api-preview.convai.com/v1/analytics/openapi.json
 
 help:
 	@echo "convai-analytics — repo tasks"

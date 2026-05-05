@@ -1,4 +1,5 @@
 import type { ConvaiAnalytics } from "../client.js";
+import { NotYetSupportedError } from "../apiErrors.js";
 import type {
   SessionListParams,
   SessionListResponse,
@@ -13,16 +14,12 @@ export class Sessions {
   }
 
   /** `GET /v1/analytics/sessions` — paginated session list. */
-  list(params: SessionListParams = {}): Promise<SessionListResponse> {
-    return this.#client.get<SessionListResponse>("/sessions", params);
+  async list(_params: SessionListParams = {}): Promise<SessionListResponse> {
+    throw new NotYetSupportedError("/sessions", "API Phase 2");
   }
 
   /** `GET /v1/analytics/sessions/{id}` — full per-session timeline. */
-  get(sessionId: string): Promise<SessionDetail> {
-    if (!sessionId) throw new Error("sessions.get: sessionId is required");
-    return this.#client.get<SessionDetail>(
-      `/sessions/${encodeURIComponent(sessionId)}`,
-      {},
-    );
+  async get(_sessionId: string): Promise<SessionDetail> {
+    throw new NotYetSupportedError("/sessions/{id}", "API Phase 2");
   }
 }

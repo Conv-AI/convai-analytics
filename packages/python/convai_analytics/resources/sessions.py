@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any
 
+from ..errors import NotYetSupportedError
 from ..types import SessionDetail, SessionListResponse
 
 if TYPE_CHECKING:
@@ -16,12 +17,10 @@ class Sessions:
 
     def list(self, **params: Any) -> SessionListResponse:
         """``GET /v1/analytics/sessions`` — paginated session list."""
-        return SessionListResponse.model_validate(self._client._get("/sessions", params))
+        del params
+        raise NotYetSupportedError("/sessions", "API Phase 2")
 
     def get(self, session_id: str) -> SessionDetail:
         """``GET /v1/analytics/sessions/{id}`` — full per-session timeline."""
-        if not session_id:
-            raise ValueError("sessions.get: session_id is required")
-        return SessionDetail.model_validate(
-            self._client._get(f"/sessions/{session_id}", {}),
-        )
+        del session_id
+        raise NotYetSupportedError("/sessions/{id}", "API Phase 2")

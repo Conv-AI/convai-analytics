@@ -74,7 +74,19 @@ export interface ResponseMeta {
 
 // ---------- summary ----------
 
-export interface SummaryParams extends TimeRange, CommonFilters {}
+/**
+ * Narrow set — these are the only fields the analytics API's `/summary`
+ * endpoint reads today. `startTime`/`endTime` and the rest of `CommonFilters`
+ * (endUserId, metricName, provider, model, processor, status) land alongside
+ * the broader endpoint surface in API Phase 2; until then they would be
+ * silently dropped on the wire and produce wrong-but-plausible numbers.
+ */
+export interface SummaryParams {
+  range?: RelativeRange;
+  characterId?: string;
+  appKey?: string;
+  experienceId?: string;
+}
 
 export interface SummaryResponse {
   sessions: number;
