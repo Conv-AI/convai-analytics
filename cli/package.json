@@ -1,0 +1,30 @@
+{
+  "name": "@convai/analytics-cli",
+  "version": "0.0.1",
+  "description": "CLI for the Convai analytics API.",
+  "type": "module",
+  "bin": {
+    "convai-analytics": "./dist/index.js"
+  },
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json && chmod +x dist/index.js",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "start": "node dist/index.js"
+  },
+  "dependencies": {
+    "@convai/analytics": "*",
+    "commander": "^12.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "typescript": "^5.6.0"
+  },
+  "license": "UNLICENSED"
+}
