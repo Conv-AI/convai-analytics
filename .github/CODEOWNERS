@@ -1,0 +1,10 @@
+# CODEOWNERS for convai-analytics.
+#
+# Public Convai analytics SDK (TypeScript + Python) + CLI + recipes +
+# OpenAPI snapshot. Customer-facing surface for the convai-analytics-api
+# service.
+#
+# @purnendu-convai is the primary maintainer; expand this list as the
+# team grows. Adding more owners only widens the approve pool.
+
+* @purnendu-convai
