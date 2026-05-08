@@ -179,7 +179,7 @@ make mcp-build
 make mcp-smoke
 ```
 
-See [`packages/mcp/README.md`](packages/mcp/README.md) for the full tool list, prompt list, resources, and live smoke command. See [`docs/publishing.md`](docs/publishing.md) for release preflight and package publishing notes.
+See [`packages/mcp/README.md`](packages/mcp/README.md) for the full tool list, prompt list, resources, and live smoke command. See [`docs/publishing.md`](docs/publishing.md) and [`docs/mcp-distribution.md`](docs/mcp-distribution.md) for release, registry, and marketplace publishing notes.
 
 ## TypeScript SDK
 

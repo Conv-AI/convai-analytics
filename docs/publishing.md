@@ -39,6 +39,14 @@ npm run e2e:prod
 
 ## JavaScript Packages
 
+The release workflow for npm + MCP registry publication is:
+
+```text
+Actions -> Publish MCP Registry -> Run workflow -> version 0.2.0
+```
+
+It requires an `NPM_TOKEN` repository secret with publish rights for the `@convai` npm scope. The CLI and MCP packages intentionally refuse direct `npm publish` while their local `file:` dependency is present; the workflow rewrites that dependency to the exact release version before publishing.
+
 Confirm package metadata before broad public release:
 
 ```bash
@@ -81,3 +89,4 @@ uv publish
 - No package contains service credentials, direct database clients, BigQuery connection code, Cube secrets, or tenant/account override paths.
 - MCP startup and tool errors do not print `CONVAI_API_KEY`.
 - Plan-gated tools surface 402/403 as typed MCP tool errors rather than silently falling back.
+- `server.json` validates against the Official MCP Registry schema.

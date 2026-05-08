@@ -1,0 +1,40 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
+  "name": "io.github.conv-ai/convai-analytics-mcp",
+  "title": "Convai Analytics",
+  "description": "Analyze Convai sessions, latency, reliability, usage, and provider telemetry via API key.",
+  "version": "0.2.0",
+  "websiteUrl": "https://github.com/Conv-AI/convai-analytics/tree/main/packages/mcp",
+  "repository": {
+    "url": "https://github.com/Conv-AI/convai-analytics",
+    "source": "github",
+    "id": "1229616682",
+    "subfolder": "packages/mcp"
+  },
+  "packages": [
+    {
+      "registryType": "npm",
+      "registryBaseUrl": "https://registry.npmjs.org",
+      "identifier": "@convai/analytics-mcp",
+      "version": "0.2.0",
+      "transport": {
+        "type": "stdio"
+      },
+      "environmentVariables": [
+        {
+          "name": "CONVAI_API_KEY",
+          "description": "Convai API key for the account to query.",
+          "isRequired": true,
+          "isSecret": true
+        },
+        {
+          "name": "CONVAI_ANALYTICS_BASE_URL",
+          "description": "Optional analytics API base URL override.",
+          "isRequired": false,
+          "isSecret": false,
+          "default": "https://analytics-api.convai.com/v1/analytics"
+        }
+      ]
+    }
+  ]
+}

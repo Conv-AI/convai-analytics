@@ -4,6 +4,8 @@ Local stdio MCP server for Convai Analytics.
 
 This package lets MCP-capable agents answer Convai analytics questions without writing custom SDK scripts. It wraps the public `@convai/analytics` TypeScript SDK, uses `CONVAI_API_KEY`, and returns structured JSON plus Vega-Lite chart specs.
 
+MCP registry name: `io.github.conv-ai/convai-analytics-mcp`
+
 ## Install And Run
 
 ```bash
@@ -187,3 +189,7 @@ npm run e2e:prod
 ```
 
 The live smoke accepts empty data for accounts without recent traffic and treats plan-gated 402/403 responses as valid gated results.
+
+## Discovery
+
+The canonical MCP registry manifest is `server.json`. After npm publication, this server can be published to the Official MCP Registry and then submitted or claimed in GitHub MCP Registry, Smithery, Glama, PulseMCP, mcp.so, and Docker MCP Catalog.
