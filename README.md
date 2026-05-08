@@ -29,6 +29,7 @@ The SDK calls Convai's hosted analytics API at `https://analytics-api.convai.com
 - **A TypeScript SDK** in `packages/typescript`.
 - **A Python SDK** in `packages/python`.
 - **A CLI** in `cli`.
+- **A local MCP server** in `packages/mcp` that exposes the main analytics questions as typed agent tools.
 - **Prompt recipes** in `recipes/prompts` that tell an AI agent exactly which calls to make for common analytics questions.
 - **Chart recipes** in `recipes/charts` that generate Vega-Lite specs or Plotly timelines for latency, usage, reliability, and concurrency analysis.
 
@@ -47,6 +48,7 @@ convai-analytics/
 ├── openapi/                    Snapshot of the analytics API contract
 ├── packages/
 │   ├── typescript/             @convai/analytics SDK
+│   ├── mcp/                    @convai/analytics-mcp local stdio server
 │   └── python/                 convai-analytics SDK
 ├── cli/                        convai-analytics command line interface
 ├── recipes/
@@ -123,6 +125,61 @@ explain the bottleneck, and generate a waterfall chart.
 ```
 
 The agent should use `recipes/prompts` for the call sequence and `recipes/charts` for chart generation.
+
+## MCP Server
+
+The fastest path for MCP-capable agents is `@convai/analytics-mcp`. It is a local stdio MCP server that wraps only the public TypeScript SDK. It reads `CONVAI_API_KEY`, optionally reads `CONVAI_ANALYTICS_BASE_URL`, and never accepts account overrides, database URLs, BigQuery access, service credentials, or Cube secrets.
+
+Run it directly:
+
+```bash
+export CONVAI_API_KEY="ck_live_your_key_here"
+npx -y @convai/analytics-mcp
+```
+
+Claude Desktop example:
+
+```json
+{
+  "mcpServers": {
+    "convai-analytics": {
+      "command": "npx",
+      "args": ["-y", "@convai/analytics-mcp"],
+      "env": {
+        "CONVAI_API_KEY": "ck_live_your_key_here"
+      }
+    }
+  }
+}
+```
+
+Cursor, Codex-compatible, and other stdio MCP clients can use the same command/env shape. Once connected, ask questions like:
+
+```text
+Show aggregate P50/P95/P99 latency for the last 30 days and generate a chart.
+```
+
+```text
+Which component is driving p95 latency, and which sessions should I inspect?
+```
+
+```text
+Show usage trends, unique end users, active-session concurrency, and provider/model latency charts.
+```
+
+The MCP server returns structured JSON for data tools and Vega-Lite JSON specs for chart tools. It does not write files; your MCP client can decide whether to render, save, or summarize the returned artifacts.
+
+Local development:
+
+```bash
+make mcp-install
+make mcp-lint
+make mcp-test
+make mcp-build
+make mcp-smoke
+```
+
+See [`packages/mcp/README.md`](packages/mcp/README.md) for the full tool list, prompt list, resources, and live smoke command. See [`docs/publishing.md`](docs/publishing.md) for release preflight and package publishing notes.
 
 ## TypeScript SDK
 

@@ -6,7 +6,7 @@ What `convai-analytics` does today, what's coming next, and what's further out. 
 
 ## Now — v0.2
 
-The full v1 endpoint surface is wired end-to-end across the TypeScript SDK, Python SDK, and CLI. Anything below that doesn't say "later" returns real numbers from your own data — no stubs.
+The full v1 endpoint surface is wired end-to-end across the TypeScript SDK, Python SDK, CLI, and local MCP server. Anything below that doesn't say "later" returns real numbers from your own data — no stubs.
 
 ### Account-level KPIs
 
@@ -22,6 +22,10 @@ const summary = await client.summary({ range: "last_24h" });
 ```
 
 Optional filters: `characterId`, `appKey`, `experienceId`. Time range is one of `last_15m | last_1h | last_6h | last_24h | last_7d | last_30d`.
+
+### MCP server
+
+`@convai/analytics-mcp` exposes the same analytics surface as typed local stdio MCP tools plus prompt and resource helpers. It wraps the public TypeScript SDK, reads `CONVAI_API_KEY`, and returns structured JSON or Vega-Lite specs for chart tools.
 
 ### Time-series
 
@@ -177,10 +181,6 @@ Today every windowed endpoint takes one of the six relative-range tokens. v0.3 a
 ## Later
 
 These ship on their own cadence, once the surface beneath them is stable.
-
-### MCP server: `@convai/analytics-mcp`
-
-A thin Model Context Protocol adapter that exposes each SDK function as a typed tool. Drop it into Claude Desktop, Cursor, Goose, or any MCP-aware client and the agent sees `summary`, `timeseries`, `breakdown`, `sessions.get`, `interactions.get` etc. as named tools with full argument schemas — same shapes as the SDK, no glue code to write.
 
 ### Capability discovery
 

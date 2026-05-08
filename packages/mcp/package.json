@@ -1,0 +1,51 @@
+{
+  "name": "@convai/analytics-mcp",
+  "version": "0.2.0",
+  "description": "Local stdio MCP server for the Convai analytics API. Designed for AI agents using a customer Convai API key.",
+  "type": "module",
+  "bin": {
+    "convai-analytics-mcp": "./dist/index.js"
+  },
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json && chmod +x dist/index.js",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "lint": "eslint src tests e2e",
+    "test": "node --test --import tsx ./tests/**/*.test.ts",
+    "e2e:prod": "tsx ./e2e/live.ts",
+    "smoke:no-key": "node dist/index.js --help"
+  },
+  "dependencies": {
+    "@convai/analytics": "file:../typescript",
+    "@modelcontextprotocol/sdk": "^1.29.0",
+    "zod": "^3.25.76"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "eslint": "^9.0.0",
+    "tsx": "^4.19.0",
+    "typescript": "^5.6.0",
+    "typescript-eslint": "^8.59.2"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Conv-AI/convai-analytics.git",
+    "directory": "packages/mcp"
+  },
+  "license": "UNLICENSED"
+}
