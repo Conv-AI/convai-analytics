@@ -2,7 +2,7 @@
 
 Agent-friendly client surface for the [Convai analytics API](https://analytics-api.convai.com/v1/analytics) — TypeScript SDK, Python SDK, CLI, prompt recipes, and chart recipes designed to be invoked from inside Claude Code, Codex, Cursor, or any coding agent.
 
-> **Status:** v0.1. `summary` is wired and live; `timeseries`, `breakdown`, `sessions`, `interactions`, `metrics/catalog` land in API Phase 2; `regression-detection` and `query` in Phase 3. Methods that target unshipped endpoints raise a typed `NotYetSupportedError` pre-flight rather than firing a request that would 404. Track rollout in [`Conv-AI/convai-analytics-api`](https://github.com/Conv-AI/convai-analytics-api).
+> **Status:** v0.2. The full v1 endpoint surface is wired: `summary`, `timeseries`, `breakdown`, `sessions.list`, `sessions.get`, `interactions.get`, `metrics/catalog`, `regression-detection`, and `query` all call live backend endpoints. Convenience facades (`latency`, `providers`, `errors`, `usage`) work end-to-end on top of the wired primitives. See [ROADMAP.md](ROADMAP.md) for what's next.
 
 ---
 
@@ -67,8 +67,10 @@ const client = new ConvaiAnalytics({ apiKey: process.env.CONVAI_API_KEY! });
 const summary = await client.summary({ range: "last_24h" });
 console.log(`Sessions: ${summary.sessions}, p95 e2e: ${summary.p95EndToEndMs}ms`);
 
-// Phase 2 (not yet wired — throws NotYetSupportedError today):
-// const trace = await client.interactions.get("int_8a31...");
+const trace = await client.interactions.get("int_8a31...");
+for (const span of trace.spans) {
+  console.log(`${span.processor}: ${span.durationMs} ms`);
+}
 ```
 
 ## Quickstart (programmatic, Python)
@@ -82,18 +84,17 @@ client = ConvaiAnalytics(api_key=os.environ["CONVAI_API_KEY"])
 summary = client.summary(range="last_24h")
 print(f"Sessions: {summary.sessions}, p95 e2e: {summary.p95_end_to_end_ms}ms")
 
-# Phase 2 (not yet wired — raises NotYetSupportedError today):
-# trace = client.interactions.get("int_8a31...")
+trace = client.interactions.get("int_8a31...")
+for span in trace.spans:
+    print(f"{span.processor}: {span.duration_ms} ms")
 ```
 
 ## Quickstart (CLI)
 
 ```bash
 npx @convai/analytics-cli summary --range last_24h
-
-# Phase 2 (not yet wired — exits with NotYetSupportedError today):
-# npx @convai/analytics-cli interaction int_8a31... --json
-# npx @convai/analytics-cli chart waterfall --interaction int_8a31... --output trace.png
+npx @convai/analytics-cli interaction int_8a31... --json
+npx @convai/analytics-cli chart waterfall --interaction int_8a31... --output trace.png
 ```
 
 ## Authentication & plan gating
@@ -111,19 +112,21 @@ A 402 response means your plan doesn't include API access; a 403 means the speci
 
 ## Endpoint catalog (v1)
 
-| SDK call | REST endpoint | Min plan |
-|---|---|---|
-| `client.summary(...)` | `GET /v1/analytics/summary` | scale |
-| `client.timeseries(...)` | `GET /v1/analytics/timeseries` | scale |
-| `client.breakdown(...)` | `GET /v1/analytics/breakdown` | scale |
-| `client.sessions.list(...)` | `GET /v1/analytics/sessions` | scale |
-| `client.sessions.get(id)` | `GET /v1/analytics/sessions/{id}` | scale |
-| `client.interactions.get(id)` | `GET /v1/analytics/interactions/{id}` | scale |
-| `client.catalog()` | `GET /v1/analytics/metrics/catalog` | scale |
-| `client.regressionDetection(...)` | `GET /v1/analytics/regression-detection` | business |
-| `client.query(cubeQuery)` | `POST /v1/analytics/query` | business |
+| SDK call | REST endpoint | Min plan | Status |
+|---|---|---|---|
+| `client.summary(...)` | `GET /v1/analytics/summary` | scale | live |
+| `client.timeseries(...)` | `GET /v1/analytics/timeseries` | scale | live |
+| `client.breakdown(...)` | `GET /v1/analytics/breakdown` | scale | live |
+| `client.sessions.list(...)` | `GET /v1/analytics/sessions` | scale | live |
+| `client.sessions.get(id)` | `GET /v1/analytics/sessions/{id}` | scale | live |
+| `client.interactions.get(id)` | `GET /v1/analytics/interactions/{id}` | scale | live |
+| `client.catalog()` | `GET /v1/analytics/metrics/catalog` | scale | live |
+| `client.regressionDetection(...)` | `GET /v1/analytics/regression-detection` | business | live |
+| `client.query(cubeQuery)` | `POST /v1/analytics/query` | business | live |
 
-The SDK also exposes **convenience facades** (`client.latency.byComponent`, `client.providers.compare`, `client.errors.summary`, `client.usage.summary`) that delegate to `breakdown`/`timeseries` with sensible defaults — these are the agent-friendly entry points and the shapes that the future MCP server will mirror as named tools.
+Plan-gated calls (`regressionDetection`, `query`) surface a typed `PlanRequiredError` (402) or `PlanInsufficientError` (403) when the caller's plan is below the required tier.
+
+The SDK also exposes **convenience facades** (`client.latency.byComponent`, `client.latency.overTime`, `client.providers.compare`, `client.errors.summary`, `client.errors.overTime`, `client.usage.summary`, `client.usage.interactions`) that delegate to `breakdown`/`timeseries` with sensible defaults. These are the agent-friendly entry points and the shapes that the future MCP server will mirror as named tools.
 
 ## Recipes
 
@@ -132,10 +135,10 @@ The SDK also exposes **convenience facades** (`client.latency.byComponent`, `cli
 
 ## Roadmap
 
-- **v0 (this commit):** SDK skeleton + docs + recipes. Endpoints stubbed (see SDK source for `// TODO: wired in Phase 4` markers).
-- **v0.1:** Wire SDKs to live `summary`, `timeseries`, `metrics/catalog` (Phase 4 of the backend).
-- **v0.2:** Wire `breakdown`, `sessions`, `sessions/{id}`, `interactions/{id}` (Phase 5).
-- **v1:** First public release. License flips to MIT/Apache-2.0 once contract is stable.
-- **v1+:** MCP server (`@convai/analytics-mcp`) — thin adapter exposing each SDK function as a typed tool for Claude Desktop / Cursor / Goose. Tracked as Phase 7 of the backend plan.
+- **v0.1:** SDK + CLI + docs + recipes scaffold. Only `summary` was live; everything else raised `NotYetSupportedError`.
+- **v0.2 (current):** Full v1 endpoint surface wired across both SDKs and the CLI. OpenAPI snapshot is the source of truth for response types.
+- **v0.3:** Absolute time ranges (`startTime`/`endTime`), broader `regressionDetection` vocabulary, expanded `query` allowed-set.
+- **v1:** First stable public release. License flips to MIT/Apache-2.0.
+- **Later:** MCP server (`@convai/analytics-mcp`), capability discovery on top of `client.catalog()`, broader metric vocabulary.
 
-See `docs/` for details.
+See [ROADMAP.md](ROADMAP.md) and `docs/` for details.

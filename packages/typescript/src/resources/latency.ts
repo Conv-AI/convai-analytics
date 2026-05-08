@@ -5,12 +5,18 @@
  */
 
 import type { ConvaiAnalytics } from "../client.js";
+import {
+  GROUP_BY,
+  METRIC_NAMES,
+  rawValuePercentileMeasure,
+  SEGMENTS,
+} from "../measures.js";
 import type {
   BreakdownResponse,
-  TimeseriesResponse,
   CommonFilters,
-  TimeRange,
   Percentile,
+  TimeRange,
+  TimeseriesResponse,
 } from "../types.js";
 
 export interface LatencyByComponentParams extends TimeRange, CommonFilters {
@@ -33,36 +39,31 @@ export class LatencyFacade {
 
   /**
    * "Which component contributes most to my p95 end-to-end latency?"
-   * Delegates to `breakdown(measure='turnP95', groupBy='processor', segment='endToEndTurnLatency')`.
+   * Delegates to `breakdown(measure=p95Value, groupBy=processor, segment=endToEndTurnLatency)`.
    */
   byComponent(params: LatencyByComponentParams = {}): Promise<BreakdownResponse> {
     const { percentile = "p95", ...rest } = params;
     return this.#client.breakdown({
-      measure: percentileMeasure(percentile),
-      groupBy: "processor",
-      segment: "endToEndTurnLatency",
+      measure: rawValuePercentileMeasure(percentile),
+      groupBy: GROUP_BY.processor,
+      segment: SEGMENTS.endToEndTurnLatency,
       ...rest,
     });
   }
 
   /**
    * "Plot p50/p95/p99 end-to-end latency over time."
-   * Delegates to `timeseries(measure='turnP95', metricName='voice.user_to_bot_latency')`.
+   * Delegates to `timeseries(measure=p95Value, metricName=voice.user_to_bot_latency)`.
    * NOTE: returns one timeseries per call; loop over `percentiles` to plot multiple.
    */
   overTime(params: LatencyOverTimeParams = {}): Promise<TimeseriesResponse> {
     const { percentiles = ["p95"], granularity, ...rest } = params;
     const percentile = percentiles[0] ?? "p95";
     return this.#client.timeseries({
-      measure: percentileMeasure(percentile),
-      metricName: "voice.user_to_bot_latency",
+      measure: rawValuePercentileMeasure(percentile),
+      metricName: METRIC_NAMES.voiceUserToBotLatency,
       granularity,
       ...rest,
     });
   }
-}
-
-function percentileMeasure(p: Percentile): string {
-  // Cube measure names: turnP50, turnP75, turnP90, turnP95, turnP99
-  return `turn${p.toUpperCase()}`;
 }

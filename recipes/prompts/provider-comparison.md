@@ -33,4 +33,4 @@ const tts = await client.providers.compare({
 
 > Did latency change after the most recent provider switch?
 
-For business+ customers: `client.regressionDetection({ baselineRange: "last_7d", currentRange: "last_24h", measure: "turnP95" })` with `groupBy: "provider"` to flag the deltas.
+For business+ customers: `client.regressionDetection({ baselineRange: "last_7d", currentRange: "last_24h", measure: "p95Value" })` with `groupBy: "provider"` to flag the deltas.

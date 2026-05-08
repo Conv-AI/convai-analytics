@@ -1,6 +1,6 @@
 {
   "name": "@convai/analytics",
-  "version": "0.0.1",
+  "version": "0.2.0",
   "description": "TypeScript SDK for the Convai analytics API. Designed for Claude Code, Codex, Cursor, and Node-side scripts.",
   "type": "module",
   "main": "./dist/index.js",
@@ -21,16 +21,18 @@
   },
   "scripts": {
     "build": "tsc -p tsconfig.json",
+    "e2e:stg": "tsx ./e2e/staging.ts",
     "typecheck": "tsc -p tsconfig.json --noEmit",
-    "lint": "eslint src --ext .ts",
+    "lint": "eslint src",
     "test": "node --test --import tsx ./src/**/*.test.ts"
   },
-  "dependencies": {},
   "devDependencies": {
     "@types/node": "^22.0.0",
     "eslint": "^9.0.0",
+    "openapi-typescript": "^7.13.0",
     "tsx": "^4.19.0",
-    "typescript": "^5.6.0"
+    "typescript": "^5.6.0",
+    "typescript-eslint": "^8.59.2"
   },
   "repository": {
     "type": "git",

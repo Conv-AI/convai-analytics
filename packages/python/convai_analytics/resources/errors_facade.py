@@ -8,6 +8,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any
 
+from ..measures import GroupBy, Measures, MetricNamePrefixes
 from ..types import BreakdownResponse, TimeseriesResponse
 
 if TYPE_CHECKING:
@@ -21,7 +22,7 @@ class ErrorsFacade:
     def summary(
         self,
         *,
-        group_by: str = "processor",
+        group_by: str = GroupBy.PROCESSOR,
         **filters: Any,
     ) -> BreakdownResponse:
         """"How many errors did I have, broken down by component?"
@@ -29,9 +30,9 @@ class ErrorsFacade:
         Delegates to ``breakdown(measure='count', metric_name_prefix='error.')``.
         """
         return self._client.breakdown(
-            measure="count",
+            measure=Measures.COUNT,
             group_by=group_by,
-            metric_name_prefix="error.",
+            metric_name_prefix=MetricNamePrefixes.ERROR,
             **filters,
         )
 
@@ -46,8 +47,8 @@ class ErrorsFacade:
         Delegates to ``timeseries(measure='count', metric_name_prefix='error.')``.
         """
         return self._client.timeseries(
-            measure="count",
-            metric_name_prefix="error.",
+            measure=Measures.COUNT,
+            metric_name_prefix=MetricNamePrefixes.ERROR,
             granularity=granularity,
             **filters,
         )

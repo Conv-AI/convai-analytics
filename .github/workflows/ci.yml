@@ -61,6 +61,7 @@ jobs:
             cli/package-lock.json
       - run: make ts-install
       - run: make ts-lint
+      - run: make ts-typecheck-recipes
       - run: make ts-test
       - run: make ts-build
 

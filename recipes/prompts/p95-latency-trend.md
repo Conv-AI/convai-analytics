@@ -26,8 +26,11 @@ const ts = await client.latency.overTime({
 
 Then render with `recipes/charts/p95_over_time.ts`.
 
+For P50/P95/P99 together, use `recipes/prompts/aggregate-latency-distribution.md`
+and `recipes/charts/latency_percentile_band.ts`.
+
 ## Follow-up worth asking
 
 > Compare this week to the previous week to see if there's a regression.
 
-For business-tier customers, `client.regressionDetection({ baselineRange: "last_7d", currentRange: "last_24h", measure: "turnP95" })` returns the largest deltas with significance flags.
+For business-tier customers, `client.regressionDetection({ baselineRange: "last_7d", currentRange: "last_24h", measure: "p95Value" })` returns the largest deltas with significance flags.

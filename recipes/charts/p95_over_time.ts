@@ -31,7 +31,7 @@ async function main(): Promise<void> {
   const ts = await client.latency.overTime({
     characterId,
     range,
-    percentile: "p95",
+    percentiles: ["p95"],
     granularity: "hour",
   });
 
