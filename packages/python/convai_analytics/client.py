@@ -204,7 +204,7 @@ def _normalize_query_value(key: str, value: Any) -> Any:
 
 
 class ConvaiAnalytics:
-    """Single-tenant client bound to one API key + base URL.
+    """Single-account client bound to one API key + base URL.
 
     Resources hang off as attributes; convenience facades wrap the lower-level
     resources with sensible defaults so coding agents have a named entry
@@ -290,7 +290,6 @@ class ConvaiAnalytics:
 
         Requires the ``business`` plan or higher (otherwise the request returns
         402/403 and the SDK raises ``PlanRequiredError`` / ``PlanInsufficientError``).
-        Backed by the BigQuery escape hatch on the server.
 
         Common kwargs: ``measure`` (default ``voice.user_to_bot_latency``),
         ``baseline_range`` (default ``last_7d``), ``current_range``
@@ -305,7 +304,7 @@ class ConvaiAnalytics:
         )
 
     def query(self, cube_query: dict[str, Any]) -> CubeQueryResponse:
-        """``POST /v1/analytics/query`` — restricted Cube passthrough.
+        """``POST /v1/analytics/query`` — restricted advanced query.
 
         Requires ``business`` plan or higher. Use only when a hand-shaped
         query cannot be expressed via the named endpoints; prefer the named

@@ -51,7 +51,7 @@ Optional environment:
 - CONVAI_ANALYTICS_BASE_URL: override the analytics API base URL. Leave unset for production.
 
 Security constraints:
-- The MCP server does not accept tenant_id, account_id, service credentials, raw Cube secrets, database URLs, or BigQuery access.
+- The MCP server does not accept account overrides, service credentials, database URLs, or other internal access paths.
 - Account isolation is enforced by the Convai Analytics API from the API key.
 - Tool results should never echo CONVAI_API_KEY.`,
 };

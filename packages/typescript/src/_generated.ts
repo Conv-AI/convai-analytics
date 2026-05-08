@@ -35,9 +35,7 @@ export interface paths {
          * Readyz
          * @description Readiness probe.
          *
-         *     Returns 200 when the service is ready to accept traffic. For the initial
-         *     shell this is identical to ``/healthz``; future work should check Redis,
-         *     Cube, and BigQuery connectivity here and return 503 on backend failure.
+         *     Returns 200 when the service is ready to accept traffic.
          */
         get: operations["readyz_readyz_get"];
         put?: never;
@@ -108,7 +106,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Restricted Cube passthrough — advanced queries within a fixed schema */
+        /** Restricted advanced query within a fixed schema */
         post: operations["cube_query_v1_analytics_query_post"];
         delete?: never;
         options?: never;
@@ -123,7 +121,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Rolling-window p95 regression detection (BigQuery escape hatch) */
+        /** Rolling-window p95 regression detection */
         get: operations["regression_detection_v1_analytics_regression_detection_get"];
         put?: never;
         post?: never;

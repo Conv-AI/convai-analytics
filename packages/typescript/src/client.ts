@@ -223,7 +223,6 @@ export class ConvaiAnalytics {
    * `GET /v1/analytics/regression-detection` — rolling p95 regression vs baseline.
    * Requires the `business` plan or higher (otherwise the request returns
    * 402/403 and the SDK raises `PlanRequiredError` / `PlanInsufficientError`).
-   * Backed by the BigQuery escape hatch on the server.
    */
   async regressionDetection(
     params: RegressionDetectionParams = {},
@@ -237,7 +236,7 @@ export class ConvaiAnalytics {
   }
 
   /**
-   * `POST /v1/analytics/query` — restricted Cube passthrough.
+   * `POST /v1/analytics/query` — restricted advanced query.
    *
    * Requires `business` plan or higher. Use only when a hand-shaped query
    * cannot be expressed via the named endpoints; prefer the named ones for

@@ -2,7 +2,7 @@
 
 Local stdio MCP server for Convai Analytics.
 
-This package lets MCP-capable agents answer Convai analytics questions without writing custom SDK scripts. It wraps the public `@convai/analytics` TypeScript SDK, uses `CONVAI_API_KEY`, and returns structured JSON plus Vega-Lite chart specs.
+This package is the recommended agent interface for Convai Analytics. It lets MCP-capable agents answer questions about your Convai sessions, latency, reliability, usage, and provider/model performance without writing custom SDK scripts. It wraps the public `@convai/analytics` TypeScript SDK, uses `CONVAI_API_KEY`, and returns structured JSON plus Vega-Lite chart specs.
 
 MCP registry name: `io.github.conv-ai/convai-analytics-mcp`
 
@@ -56,7 +56,7 @@ Use the same stdio command:
 The server is customer-facing and public-safe by design:
 
 - It only calls the public Convai Analytics API through `@convai/analytics`.
-- It does not accept `tenant_id`, `account_id`, service credentials, Cube secrets, database URLs, or BigQuery access.
+- It does not accept account overrides, service credentials, database URLs, or other internal access paths.
 - Account scoping, plan gating, and quota enforcement stay server-side in the hosted analytics API.
 - Tool results are sanitized so errors do not echo `CONVAI_API_KEY`.
 
