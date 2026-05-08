@@ -80,6 +80,8 @@ npx -y @convai/analytics-mcp@latest
 
 The server is also listed in the Official MCP Registry as [`io.github.Conv-AI/convai-analytics-mcp`](https://registry.modelcontextprotocol.io/v0/servers?search=io.github.Conv-AI%2Fconvai-analytics-mcp). If your MCP client supports registry discovery, use that registry entry; otherwise configure the `npx` command above. Once connected, ask normal analytics questions:
 
+After adding or changing MCP config, restart Claude Desktop, Claude Code, Cursor, Codex, or your MCP host so it reloads the server command and `CONVAI_API_KEY`.
+
 ```text
 Show aggregate P50/P95/P99 latency for the last 30 days and generate a chart.
 ```
@@ -178,7 +180,7 @@ Claude Desktop example:
 }
 ```
 
-Cursor, Codex-compatible, and other stdio MCP clients can use the same command/env shape. Once connected, ask questions like:
+After saving this config, quit and reopen Claude Desktop so it starts the new MCP server. Claude Code, Cursor, Codex-compatible clients, and other stdio MCP hosts can use the same command/env shape; restart the client or start a new session after adding or changing MCP config. Once connected, ask questions like:
 
 ```text
 Show aggregate P50/P95/P99 latency for the last 30 days and generate a chart.

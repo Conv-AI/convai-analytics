@@ -1,6 +1,6 @@
 {
   "name": "@convai/analytics-mcp",
-  "version": "0.2.2",
+  "version": "0.2.3",
   "mcpName": "io.github.Conv-AI/convai-analytics-mcp",
   "description": "Local stdio MCP server for the Convai analytics API. Designed for AI agents using a customer Convai API key.",
   "type": "module",

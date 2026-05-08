@@ -23,6 +23,8 @@ export CONVAI_ANALYTICS_BASE_URL="https://analytics-api.convai.com/v1/analytics"
 
 Leave `CONVAI_ANALYTICS_BASE_URL` unset for production. Do not put the API key in source code, committed MCP config, screenshots, or logs.
 
+After adding or changing MCP config, restart Claude Desktop, Claude Code, Cursor, Codex, or your MCP host so it reloads the server command and `CONVAI_API_KEY`.
+
 ## Claude Desktop
 
 ```json
@@ -39,6 +41,8 @@ Leave `CONVAI_ANALYTICS_BASE_URL` unset for production. Do not put the API key i
 }
 ```
 
+After saving this config, quit and reopen Claude Desktop so it starts the new MCP server.
+
 ## Cursor / Codex-Compatible MCP Clients
 
 Use the same stdio command:
@@ -52,6 +56,8 @@ Use the same stdio command:
   }
 }
 ```
+
+For Claude Code, Cursor, Codex-compatible clients, and other stdio MCP hosts, restart the client or start a new session after adding or changing MCP config.
 
 ## Security Model
 
