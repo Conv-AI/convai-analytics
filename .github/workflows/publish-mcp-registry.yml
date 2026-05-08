@@ -73,23 +73,24 @@ jobs:
           }
           NODE
 
+      - name: Verify npm publish authentication
+        run: |
+          test -n "$NODE_AUTH_TOKEN" || {
+            echo "NODE_AUTH_TOKEN is empty. Configure an npm automation token for this workflow before publishing."
+            exit 1
+          }
+
       - name: Publish TypeScript SDK to npm
         run: npm publish --access public --provenance
         working-directory: packages/typescript
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
       - name: Publish MCP package to npm
         run: npm publish --access public --provenance
         working-directory: packages/mcp
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
       - name: Publish CLI package to npm
         run: npm publish --access public --provenance
         working-directory: cli
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
       - name: Install mcp-publisher
         run: |
