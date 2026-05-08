@@ -101,9 +101,11 @@ npx @convai/analytics-cli chart waterfall --interaction int_8a31... --output tra
 
 Auth is the `CONVAI-API-KEY` header (same key as the rest of the Convai API). The analytics API is gated by plan:
 
+Treat this key as a bearer secret. Use the SDK from server-side code, local scripts, CI jobs, or coding-agent workspaces where environment variables are private. Do not embed `CONVAI_API_KEY` in browser bundles, mobile apps, public notebooks, client-side demos, or committed config files; anyone who can read the key can query analytics for that account until the key is revoked.
+
 | Plan | API access | Visibility tiers |
 |---|---|---|
-| free / starter | ❌ — UI dashboards only | PUBLIC |
+| free / starter | ✅ limited monthly quota | PUBLIC |
 | **scale** | ✅ basic + rate-limited | PUBLIC |
 | **business** | ✅ + `regression-detection` + `query` passthrough | PUBLIC + ENTERPRISE |
 | **enterprise** | ✅ + higher quotas, longer retention, SLA | PUBLIC + ENTERPRISE |

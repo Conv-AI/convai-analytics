@@ -22,13 +22,15 @@ ConvaiAnalytics(api_key="ck_live_...")
 
 The key resolves server-side (via Convai Middleman) to a `(tenant_id, plan)` pair. **All authorization happens server-side** — every query is forcibly scoped to your tenant before any data is read. The SDK does not (and cannot) influence the scoping.
 
+Keep the key server-side. `CONVAI_API_KEY` is a bearer credential: whoever has it can query analytics for the resolved account subject to that account's plan and quota. Do not put it in browser JavaScript, mobile apps, public repos, shared notebooks, screenshots, or log output. For product UIs, proxy analytics requests through your own backend or a Convai-managed authenticated surface instead of calling the API directly from an untrusted client.
+
 ## Plan tiers
 
 The analytics API is gated by plan:
 
 | Plan | API access | Visibility tiers | Notes |
 |---|---|---|---|
-| free / starter | ❌ | PUBLIC (UI only) | Playground dashboards work; no programmatic access. |
+| free / starter | ✅ | PUBLIC | Small monthly API quota for evaluation. |
 | **scale** | ✅ | PUBLIC | Basic REST endpoints, rate-limited. |
 | **business** | ✅ | PUBLIC + ENTERPRISE | Adds `regression-detection` and the `query` passthrough; per-processor breakdowns. |
 | **enterprise** | ✅ | PUBLIC + ENTERPRISE | Higher quotas, longer retention, SLAs. |
