@@ -16,6 +16,21 @@
     "dist",
     "README.md"
   ],
+  "keywords": [
+    "convai",
+    "analytics",
+    "sdk",
+    "latency",
+    "observability",
+    "ai-agents"
+  ],
+  "homepage": "https://github.com/Conv-AI/convai-analytics#readme",
+  "bugs": {
+    "url": "https://github.com/Conv-AI/convai-analytics/issues"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
   "engines": {
     "node": ">=18"
   },

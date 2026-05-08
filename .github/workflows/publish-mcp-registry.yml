@@ -1,0 +1,102 @@
+name: Publish MCP Registry
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Exact package/server version to publish"
+        required: true
+        default: "0.2.0"
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  publish:
+    name: Publish npm package and MCP Registry entry
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          registry-url: "https://registry.npmjs.org"
+          cache: "npm"
+          cache-dependency-path: |
+            packages/typescript/package-lock.json
+            cli/package-lock.json
+            packages/mcp/package-lock.json
+
+      - name: Install and verify packages
+        run: |
+          make mcp-install
+          make mcp-lint
+          make mcp-test
+          make mcp-build
+          make mcp-smoke
+          cd cli
+          npm install
+          npm run build
+
+      - name: Set publish version in package and registry metadata
+        env:
+          VERSION: ${{ inputs.version }}
+        run: |
+          node - <<'NODE'
+          const fs = require("node:fs");
+          const version = process.env.VERSION;
+          const rewritePackage = (path, mutate) => {
+            const pkg = JSON.parse(fs.readFileSync(path, "utf8"));
+            mutate(pkg);
+            fs.writeFileSync(path, `${JSON.stringify(pkg, null, 2)}\n`);
+          };
+          rewritePackage("packages/typescript/package.json", (pkg) => {
+            pkg.version = version;
+          });
+          rewritePackage("cli/package.json", (pkg) => {
+            pkg.version = version;
+            pkg.dependencies["@convai/analytics"] = version;
+          });
+          rewritePackage("packages/mcp/package.json", (pkg) => {
+            pkg.version = version;
+            pkg.dependencies["@convai/analytics"] = version;
+          });
+          for (const path of ["server.json", "packages/mcp/server.json"]) {
+            const manifest = JSON.parse(fs.readFileSync(path, "utf8"));
+            manifest.version = version;
+            for (const pkg of manifest.packages ?? []) {
+              if (pkg.identifier === "@convai/analytics-mcp") pkg.version = version;
+            }
+            fs.writeFileSync(path, `${JSON.stringify(manifest, null, 2)}\n`);
+          }
+          NODE
+
+      - name: Publish TypeScript SDK to npm
+        run: npm publish --access public --provenance
+        working-directory: packages/typescript
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Publish MCP package to npm
+        run: npm publish --access public --provenance
+        working-directory: packages/mcp
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Publish CLI package to npm
+        run: npm publish --access public --provenance
+        working-directory: cli
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Install mcp-publisher
+        run: |
+          curl -L "https://github.com/modelcontextprotocol/registry/releases/latest/download/mcp-publisher_$(uname -s | tr '[:upper:]' '[:lower:]')_$(uname -m | sed 's/x86_64/amd64/;s/aarch64/arm64/').tar.gz" | tar xz mcp-publisher
+
+      - name: Authenticate to MCP Registry
+        run: ./mcp-publisher login github-oidc
+
+      - name: Publish to MCP Registry
+        run: ./mcp-publisher publish

@@ -1,6 +1,7 @@
 {
   "name": "@convai/analytics-mcp",
   "version": "0.2.0",
+  "mcpName": "io.github.conv-ai/convai-analytics-mcp",
   "description": "Local stdio MCP server for the Convai analytics API. Designed for AI agents using a customer Convai API key.",
   "type": "module",
   "bin": {
@@ -17,8 +18,25 @@
   },
   "files": [
     "dist",
+    "server.json",
     "README.md"
   ],
+  "keywords": [
+    "convai",
+    "analytics",
+    "mcp",
+    "model-context-protocol",
+    "latency",
+    "observability",
+    "ai-agents"
+  ],
+  "homepage": "https://github.com/Conv-AI/convai-analytics/tree/main/packages/mcp#readme",
+  "bugs": {
+    "url": "https://github.com/Conv-AI/convai-analytics/issues"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
   "engines": {
     "node": ">=18"
   },
@@ -28,7 +46,8 @@
     "lint": "eslint src tests e2e",
     "test": "node --test --import tsx ./tests/**/*.test.ts",
     "e2e:prod": "tsx ./e2e/live.ts",
-    "smoke:no-key": "node dist/index.js --help"
+    "smoke:no-key": "node dist/index.js --help",
+    "prepublishOnly": "node -e \"const p=require('./package.json'); const dep=p.dependencies?.['@convai/analytics']||''; if (dep.startsWith('file:')) { console.error('Refusing to publish with local @convai/analytics dependency. Use the Publish MCP Registry workflow.'); process.exit(1); }\""
   },
   "dependencies": {
     "@convai/analytics": "file:../typescript",
