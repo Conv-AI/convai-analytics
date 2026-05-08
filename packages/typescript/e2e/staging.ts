@@ -108,6 +108,12 @@ interface UsageChartRow {
   sampleCount: number;
 }
 
+interface DrilldownTarget {
+  session: SessionSummary;
+  detail: SessionDetail;
+  interactionId: string;
+}
+
 class SkipTest extends Error {
   constructor(message: string) {
     super(message);
@@ -264,25 +270,7 @@ async function latencyFacadeQuestion(ctx: TestContext): Promise<string> {
 }
 
 async function drilldownQuestion(ctx: TestContext): Promise<string> {
-  const sessions = await getSessions(ctx);
-  assertSessionList(sessions);
-  if (sessions.sessions.length === 0) {
-    if (REQUIRE_DATA) throw new Error(`expected sessions for ${DEFAULT_RANGE}`);
-    throw new SkipTest(`no sessions for ${DEFAULT_RANGE}`);
-  }
-
-  const summary = sessions.sessions[0];
-  assert(summary, "sessions response had no first row");
-  const detail = await withRateLimitRetry(() => ctx.client.sessions.get(summary.sessionId));
-  assertSessionDetail(detail);
-  ctx.sessionDetail = detail;
-
-  const interactionId = detail.events.find((e) => e.interactionId)?.interactionId;
-  if (!interactionId) {
-    if (REQUIRE_DATA) throw new Error(`session ${summary.sessionId} has no interaction id in timeline`);
-    throw new SkipTest(`session ${summary.sessionId} has no interaction id in timeline`);
-  }
-
+  const { session, detail, interactionId } = await getDrilldownTarget(ctx);
   const trace = await withRateLimitRetry(() => ctx.client.interactions.get(interactionId));
   assert(trace.interactionId === interactionId, "interaction id mismatch");
   assert(Array.isArray(trace.spans), "interaction spans must be an array");
@@ -290,7 +278,7 @@ async function drilldownQuestion(ctx: TestContext): Promise<string> {
   const latencyLike = trace.spans.filter(isLatencyLikeSpan).length;
   assert(trace.spans.length > 0, "interaction trace must include spans");
   return [
-    `sessions=${sessions.sessions.length}`,
+    `session=${session.sessionId}`,
     `events=${detail.events.length}`,
     `spans=${trace.spans.length}`,
     `latencyLikeSpans=${latencyLike}`,
@@ -888,23 +876,37 @@ async function getSessions(ctx: TestContext): Promise<SessionListResponse> {
 
 async function getInteractionTrace(ctx: TestContext): Promise<InteractionTrace> {
   if (ctx.interactionTrace) return ctx.interactionTrace;
+  const { interactionId } = await getDrilldownTarget(ctx);
+  ctx.interactionTrace = await withRateLimitRetry(() => ctx.client.interactions.get(interactionId));
+  return ctx.interactionTrace;
+}
+
+async function getDrilldownTarget(ctx: TestContext): Promise<DrilldownTarget> {
   const sessions = await getSessions(ctx);
-  const first = sessions.sessions[0];
-  if (!first) {
+  assertSessionList(sessions);
+  if (sessions.sessions.length === 0) {
     if (REQUIRE_DATA) throw new Error(`expected sessions for ${DEFAULT_RANGE}`);
     throw new SkipTest(`no sessions for ${DEFAULT_RANGE}`);
   }
-  const detail = ctx.sessionDetail ?? await withRateLimitRetry(() =>
-    ctx.client.sessions.get(first.sessionId),
-  );
-  ctx.sessionDetail = detail;
-  const interactionId = detail.events.find((event) => event.interactionId)?.interactionId;
-  if (!interactionId) {
-    if (REQUIRE_DATA) throw new Error(`session ${first.sessionId} has no interaction id in timeline`);
-    throw new SkipTest(`session ${first.sessionId} has no interaction id in timeline`);
+
+  const scannedSessionIds: string[] = [];
+  for (const session of sessions.sessions) {
+    const detail = ctx.sessionDetail?.sessionId === session.sessionId
+      ? ctx.sessionDetail
+      : await withRateLimitRetry(() => ctx.client.sessions.get(session.sessionId));
+    assertSessionDetail(detail);
+    scannedSessionIds.push(session.sessionId);
+    const interactionId = detail.events.find((event) => event.interactionId)?.interactionId;
+    if (interactionId) {
+      ctx.sessionDetail = detail;
+      return { session, detail, interactionId };
+    }
+    if (REQUEST_DELAY_MS > 0) await sleep(Math.min(REQUEST_DELAY_MS, 1_000));
   }
-  ctx.interactionTrace = await withRateLimitRetry(() => ctx.client.interactions.get(interactionId));
-  return ctx.interactionTrace;
+
+  const message = `no session with an interaction id in ${sessions.sessions.length} candidate timelines`;
+  if (REQUIRE_DATA) throw new Error(`${message}: ${scannedSessionIds.join(", ")}`);
+  throw new SkipTest(message);
 }
 
 async function getErrorTrend(ctx: TestContext): Promise<TimeseriesResponse> {
