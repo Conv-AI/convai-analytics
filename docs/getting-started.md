@@ -22,6 +22,8 @@ cd convai-analytics
 export CONVAI_API_KEY=ck_live_...
 ```
 
+Keep this key out of browser bundles, mobile apps, public repos, notebooks, screenshots, and logs. The analytics SDK is intended for server-side code, local scripts, CI jobs, and coding-agent workspaces where environment variables are private.
+
 Optional: override the API base URL (defaults to `https://analytics-api.convai.com/v1/analytics`):
 
 ```bash
