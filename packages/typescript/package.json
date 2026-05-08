@@ -1,6 +1,6 @@
 {
   "name": "@convai/analytics",
-  "version": "0.2.0",
+  "version": "0.2.2",
   "description": "TypeScript SDK for the Convai analytics API. Designed for Claude Code, Codex, Cursor, and Node-side scripts.",
   "type": "module",
   "main": "./dist/index.js",
