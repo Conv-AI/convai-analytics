@@ -11,6 +11,8 @@ const summary = await client.summary({ range: "last_24h" });
 const trace = await client.interactions.get("int_8a31...");
 ```
 
+`CONVAI_API_KEY` is a bearer credential. Keep it server-side or in private agent workspaces; do not ship it in browser bundles, mobile apps, public repos, notebooks, screenshots, or logs.
+
 See the [repo root](../../) for full docs, recipes, and examples.
 
 ## API surface
