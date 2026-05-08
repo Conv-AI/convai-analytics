@@ -4,13 +4,15 @@ Local stdio MCP server for Convai Analytics.
 
 This package is the recommended agent interface for Convai Analytics. It lets MCP-capable agents answer questions about your Convai sessions, latency, reliability, usage, and provider/model performance without writing custom SDK scripts. It wraps the public `@convai/analytics` TypeScript SDK, uses `CONVAI_API_KEY`, and returns structured JSON plus Vega-Lite chart specs.
 
-MCP registry name: `io.github.Conv-AI/convai-analytics-mcp`
+Package: [`@convai/analytics-mcp`](https://www.npmjs.com/package/@convai/analytics-mcp)
+
+Official MCP Registry name: [`io.github.Conv-AI/convai-analytics-mcp`](https://registry.modelcontextprotocol.io/v0/servers?search=io.github.Conv-AI%2Fconvai-analytics-mcp)
 
 ## Install And Run
 
 ```bash
 export CONVAI_API_KEY="ck_live_your_key_here"
-npx -y @convai/analytics-mcp
+npx -y @convai/analytics-mcp@latest
 ```
 
 Optional:
@@ -28,7 +30,7 @@ Leave `CONVAI_ANALYTICS_BASE_URL` unset for production. Do not put the API key i
   "mcpServers": {
     "convai-analytics": {
       "command": "npx",
-      "args": ["-y", "@convai/analytics-mcp"],
+      "args": ["-y", "@convai/analytics-mcp@latest"],
       "env": {
         "CONVAI_API_KEY": "ck_live_your_key_here"
       }
@@ -44,7 +46,7 @@ Use the same stdio command:
 ```json
 {
   "command": "npx",
-  "args": ["-y", "@convai/analytics-mcp"],
+  "args": ["-y", "@convai/analytics-mcp@latest"],
   "env": {
     "CONVAI_API_KEY": "ck_live_your_key_here"
   }
@@ -192,4 +194,4 @@ The live smoke accepts empty data for accounts without recent traffic and treats
 
 ## Discovery
 
-The canonical MCP registry manifest is `server.json`. After npm publication, this server can be published to the Official MCP Registry and then submitted or claimed in GitHub MCP Registry, Smithery, Glama, PulseMCP, mcp.so, and Docker MCP Catalog.
+The canonical MCP registry manifest is `server.json`. The server is published to npm and the Official MCP Registry. Additional directories and marketplaces such as GitHub MCP Registry, Smithery, Glama, PulseMCP, mcp.so, and Docker MCP Catalog can reference the same package and registry metadata.

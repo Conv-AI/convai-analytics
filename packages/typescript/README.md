@@ -2,6 +2,14 @@
 
 TypeScript SDK for the Convai analytics API.
 
+Install:
+
+```bash
+npm install @convai/analytics
+```
+
+If you are using an AI agent or MCP-capable client, the recommended starting point is [`@convai/analytics-mcp`](https://www.npmjs.com/package/@convai/analytics-mcp). It wraps this SDK as typed MCP tools and is listed in the Official MCP Registry as [`io.github.Conv-AI/convai-analytics-mcp`](https://registry.modelcontextprotocol.io/v0/servers?search=io.github.Conv-AI%2Fconvai-analytics-mcp).
+
 ```ts
 import { ConvaiAnalytics } from "@convai/analytics";
 
@@ -13,7 +21,7 @@ const trace = await client.interactions.get("int_8a31...");
 
 `CONVAI_API_KEY` is a bearer credential. Keep it server-side or in private agent workspaces; do not ship it in browser bundles, mobile apps, public repos, notebooks, screenshots, or logs.
 
-See the [repo root](../../) for full docs, recipes, and examples.
+See the [repo root](../../) for full docs, MCP setup, recipes, and examples.
 
 ## API surface
 

@@ -2,7 +2,7 @@
 
 Agentic analytics for Convai applications.
 
-This repository lets MCP-capable agents, coding agents, and developers answer questions about Convai session telemetry using only a Convai API key. The recommended path is the local MCP server, `@convai/analytics-mcp`, which plugs into Claude Desktop, Cursor, Codex-compatible MCP clients, and other stdio MCP hosts so agents can call typed analytics tools instead of writing custom scripts.
+This repository lets MCP-capable agents, coding agents, and developers answer questions about Convai session telemetry using only a Convai API key. The recommended path is the published local MCP server, [`@convai/analytics-mcp`](https://www.npmjs.com/package/@convai/analytics-mcp), which plugs into Claude Desktop, Cursor, Codex-compatible MCP clients, and other stdio MCP hosts so agents can call typed analytics tools instead of writing custom scripts.
 
 For developers who want direct programmatic access, the repo also includes TypeScript, Python, and CLI clients that use the same public Analytics API.
 
@@ -75,10 +75,10 @@ For agent workflows, start here:
 
 ```bash
 export CONVAI_API_KEY="ck_live_your_key_here"
-npx -y @convai/analytics-mcp
+npx -y @convai/analytics-mcp@latest
 ```
 
-Then connect that command to Claude Desktop, Cursor, Codex-compatible MCP clients, or any stdio MCP host. Once connected, ask normal analytics questions:
+The server is also listed in the Official MCP Registry as [`io.github.Conv-AI/convai-analytics-mcp`](https://registry.modelcontextprotocol.io/v0/servers?search=io.github.Conv-AI%2Fconvai-analytics-mcp). If your MCP client supports registry discovery, use that registry entry; otherwise configure the `npx` command above. Once connected, ask normal analytics questions:
 
 ```text
 Show aggregate P50/P95/P99 latency for the last 30 days and generate a chart.
@@ -151,14 +151,16 @@ The agent should use `recipes/prompts` for the call sequence and `recipes/charts
 
 ## MCP Server
 
-The fastest path for MCP-capable agents is `@convai/analytics-mcp`. It is a local stdio MCP server that wraps only the public TypeScript SDK. It reads `CONVAI_API_KEY`, optionally reads `CONVAI_ANALYTICS_BASE_URL`, and never accepts account overrides, service credentials, database URLs, or other internal access paths.
+The fastest path for MCP-capable agents is [`@convai/analytics-mcp`](https://www.npmjs.com/package/@convai/analytics-mcp). It is a published local stdio MCP server that wraps only the public TypeScript SDK. It reads `CONVAI_API_KEY`, optionally reads `CONVAI_ANALYTICS_BASE_URL`, and never accepts account overrides, service credentials, database URLs, or other internal access paths.
 
 Run it directly:
 
 ```bash
 export CONVAI_API_KEY="ck_live_your_key_here"
-npx -y @convai/analytics-mcp
+npx -y @convai/analytics-mcp@latest
 ```
+
+Official MCP Registry name: [`io.github.Conv-AI/convai-analytics-mcp`](https://registry.modelcontextprotocol.io/v0/servers?search=io.github.Conv-AI%2Fconvai-analytics-mcp)
 
 Claude Desktop example:
 
@@ -167,7 +169,7 @@ Claude Desktop example:
   "mcpServers": {
     "convai-analytics": {
       "command": "npx",
-      "args": ["-y", "@convai/analytics-mcp"],
+      "args": ["-y", "@convai/analytics-mcp@latest"],
       "env": {
         "CONVAI_API_KEY": "ck_live_your_key_here"
       }
@@ -216,7 +218,6 @@ packages/typescript/node_modules/.bin/tsx --tsconfig tsconfig.recipes.json examp
 When using the package from your own Node project:
 
 ```bash
-# Use this once the package is available in your npm registry.
 npm install @convai/analytics
 ```
 
@@ -318,6 +319,8 @@ make ts-build
 Run common queries:
 
 ```bash
+npx -y @convai/analytics-cli summary --range last_7d --pretty
+
 node cli/dist/index.js summary --range last_7d --pretty
 
 node cli/dist/index.js timeseries \

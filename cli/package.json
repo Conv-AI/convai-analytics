@@ -1,6 +1,6 @@
 {
   "name": "@convai/analytics-cli",
-  "version": "0.2.0",
+  "version": "0.2.2",
   "description": "CLI for the Convai analytics API.",
   "type": "module",
   "bin": {
