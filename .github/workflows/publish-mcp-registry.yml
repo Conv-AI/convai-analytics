@@ -6,7 +6,7 @@ on:
       version:
         description: "Exact package/server version to publish"
         required: true
-        default: "0.2.0"
+        default: "0.2.1"
 
 permissions:
   contents: read
