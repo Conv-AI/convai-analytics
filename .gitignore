@@ -24,6 +24,7 @@ venv/
 .mypy_cache/
 .coverage
 htmlcov/
+packages/typescript/e2e/artifacts/
 
 # Editors / OS
 .vscode/

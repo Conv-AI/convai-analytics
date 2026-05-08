@@ -7,8 +7,12 @@ Runnable scripts in [`recipes/charts/`](../recipes/charts/) that turn API respon
 | Recipe | Input | Output | Language |
 |---|---|---|---|
 | [latency_waterfall.ts](../recipes/charts/latency_waterfall.ts) | `interactionId` | Horizontal waterfall of component spans | TypeScript |
-| [p95_over_time.ts](../recipes/charts/p95_over_time.ts) | time range, optional filters | Line chart with p50/p95/p99 bands | TypeScript |
+| [p95_over_time.ts](../recipes/charts/p95_over_time.ts) | time range, optional filters | Line chart with p95 over time | TypeScript |
+| [latency_percentile_band.ts](../recipes/charts/latency_percentile_band.ts) | time range, optional threshold | Line chart with p50/p95/p99 bands | TypeScript |
 | [component_breakdown.ts](../recipes/charts/component_breakdown.ts) | time range, optional filters | Stacked bar by processor | TypeScript |
+| [reliability_trends.ts](../recipes/charts/reliability_trends.ts) | time range | Error and reliability trend chart | TypeScript |
+| [usage_trends.ts](../recipes/charts/usage_trends.ts) | time range, optional filters | Sessions, interactions, unique end users over time | TypeScript |
+| [concurrency_estimate.ts](../recipes/charts/concurrency_estimate.ts) | time range, bucket size | Active-session / LiveKit-room pressure proxy | TypeScript |
 | [session_timeline.py](../recipes/charts/session_timeline.py) | `sessionId` | Event timeline (one row per metric, time x-axis) | Python |
 
 ## Conventions

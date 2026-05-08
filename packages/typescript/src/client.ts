@@ -8,9 +8,9 @@
  */
 
 import {
+  ConvaiAnalyticsError,
   errorFromResponse,
   InvalidRangeError,
-  NotYetSupportedError,
   type ApiErrorPayload,
 } from "./apiErrors.js";
 import {
@@ -35,7 +35,7 @@ import { ErrorsFacade } from "./resources/errors.js";
 import { UsageFacade } from "./resources/usage.js";
 
 const DEFAULT_BASE_URL = "https://analytics-api.convai.com/v1/analytics";
-const SDK_VERSION = "0.0.1";
+const SDK_VERSION = "0.2.0";
 
 /**
  * The exact set of relative-range tokens the analytics API accepts today.
@@ -56,6 +56,93 @@ function validateRange(range: string | undefined): void {
   if (range === undefined) return;
   if (!(ALLOWED_RANGES as readonly string[]).includes(range)) {
     throw new InvalidRangeError(range, ALLOWED_RANGES);
+  }
+}
+
+/**
+ * Constraints the backend's `POST /v1/analytics/query` enforces. We
+ * mirror them client-side so an obvious mistake (typo'd prefix, oversize
+ * query, forbidden granularity) raises *before* the round trip.
+ *
+ * The backend remains the source of truth — this validator is best-effort
+ * and exists to give agents fast, specific feedback. If the backend
+ * tightens rules, this function may lag; the response error still wins.
+ */
+const CUBE_MEMBER_PREFIX = "SessionMetrics.";
+const CUBE_MAX_TOTAL_MEMBERS = 12;
+const CUBE_FORBIDDEN_GRANULARITIES = new Set(["second"]);
+const CUBE_LIMIT_MIN = 1;
+const CUBE_LIMIT_MAX = 5_000;
+
+function validateCubeQuery(q: CubeQuery): void {
+  const fail = (code: string, message: string, details?: Record<string, unknown>): never => {
+    throw new ConvaiAnalyticsError(0, { code, message, details });
+  };
+
+  const measures = q.measures ?? [];
+  const dimensions = q.dimensions ?? [];
+  const segments = q.segments ?? [];
+  const filters = q.filters ?? [];
+  const timeDimensions = q.timeDimensions ?? [];
+
+  const total = measures.length + dimensions.length + segments.length;
+  if (total === 0) {
+    fail(
+      "empty_query",
+      "Query must declare at least one measure, dimension, or segment.",
+    );
+  }
+  if (total > CUBE_MAX_TOTAL_MEMBERS) {
+    fail(
+      "query_too_wide",
+      `Query has ${total} members; max is ${CUBE_MAX_TOTAL_MEMBERS}. Reduce measures + dimensions + segments.`,
+      { total, max: CUBE_MAX_TOTAL_MEMBERS },
+    );
+  }
+
+  for (const m of [...measures, ...dimensions, ...segments]) {
+    if (!m.startsWith(CUBE_MEMBER_PREFIX)) {
+      fail(
+        "invalid_member",
+        `members must start with '${CUBE_MEMBER_PREFIX}' (got '${m}').`,
+        { member: m, requiredPrefix: CUBE_MEMBER_PREFIX },
+      );
+    }
+  }
+  for (const f of filters) {
+    if (!f.member.startsWith(CUBE_MEMBER_PREFIX)) {
+      fail(
+        "invalid_member",
+        `filter member must start with '${CUBE_MEMBER_PREFIX}' (got '${f.member}').`,
+        { member: f.member, requiredPrefix: CUBE_MEMBER_PREFIX },
+      );
+    }
+  }
+  for (const td of timeDimensions) {
+    if (!td.dimension.startsWith(CUBE_MEMBER_PREFIX)) {
+      fail(
+        "invalid_member",
+        `timeDimension dimension must start with '${CUBE_MEMBER_PREFIX}' (got '${td.dimension}').`,
+        { member: td.dimension, requiredPrefix: CUBE_MEMBER_PREFIX },
+      );
+    }
+    if (td.granularity && CUBE_FORBIDDEN_GRANULARITIES.has(td.granularity)) {
+      fail(
+        "forbidden_granularity",
+        `Granularity '${td.granularity}' is not permitted. Forbidden: ${[...CUBE_FORBIDDEN_GRANULARITIES].join(", ")}.`,
+        { granularity: td.granularity },
+      );
+    }
+  }
+
+  if (q.limit !== undefined && q.limit !== null) {
+    if (q.limit < CUBE_LIMIT_MIN || q.limit > CUBE_LIMIT_MAX) {
+      fail(
+        "invalid_limit",
+        `limit must be between ${CUBE_LIMIT_MIN} and ${CUBE_LIMIT_MAX} (got ${q.limit}).`,
+        { limit: q.limit, min: CUBE_LIMIT_MIN, max: CUBE_LIMIT_MAX },
+      );
+    }
   }
 }
 
@@ -110,45 +197,66 @@ export class ConvaiAnalytics {
   // ---------- Direct REST mappings ----------
 
   /** `GET /v1/analytics/summary` — top-level KPIs over a window. */
-  summary(params: SummaryParams = {}): Promise<SummaryResponse> {
+  async summary(params: SummaryParams = {}): Promise<SummaryResponse> {
     validateRange(params.range);
-    return this.get<SummaryResponse>("/summary", params);
+    return this.get<SummaryResponse>("/summary", params as Record<string, unknown>);
   }
 
-  /** `GET /v1/analytics/timeseries` — measure × granularity time series. */
-  async timeseries(_params: TimeseriesParams): Promise<TimeseriesResponse> {
-    throw new NotYetSupportedError("/timeseries", "API Phase 2");
+  /** `GET /v1/analytics/timeseries` — bucketed values for a single measure. */
+  async timeseries(params: TimeseriesParams = {}): Promise<TimeseriesResponse> {
+    validateRange(params.range);
+    return this.get<TimeseriesResponse>("/timeseries", params as Record<string, unknown>);
   }
 
   /** `GET /v1/analytics/breakdown` — group-by aggregation for one measure. */
-  async breakdown(_params: BreakdownParams): Promise<BreakdownResponse> {
-    throw new NotYetSupportedError("/breakdown", "API Phase 2");
+  async breakdown(params: BreakdownParams = {}): Promise<BreakdownResponse> {
+    validateRange(params.range);
+    return this.get<BreakdownResponse>("/breakdown", params as Record<string, unknown>);
   }
 
   /** `GET /v1/analytics/metrics/catalog` — what your plan can query. */
   async catalog(): Promise<CatalogResponse> {
-    throw new NotYetSupportedError("/metrics/catalog", "API Phase 2");
+    return this.get<CatalogResponse>("/metrics/catalog", {});
   }
 
   /**
    * `GET /v1/analytics/regression-detection` — rolling p95 regression vs baseline.
-   * Requires the `business` plan or higher (otherwise 403).
+   * Requires the `business` plan or higher (otherwise the request returns
+   * 402/403 and the SDK raises `PlanRequiredError` / `PlanInsufficientError`).
    * Backed by the BigQuery escape hatch on the server.
    */
   async regressionDetection(
-    _params: RegressionDetectionParams,
+    params: RegressionDetectionParams = {},
   ): Promise<RegressionDetectionResponse> {
-    throw new NotYetSupportedError("/regression-detection", "API Phase 3");
+    validateRange(params.baselineRange);
+    validateRange(params.currentRange);
+    return this.get<RegressionDetectionResponse>(
+      "/regression-detection",
+      params as Record<string, unknown>,
+    );
   }
 
   /**
    * `POST /v1/analytics/query` — restricted Cube passthrough.
+   *
    * Requires `business` plan or higher. Use only when a hand-shaped query
    * cannot be expressed via the named endpoints; prefer the named ones for
    * forward compatibility.
+   *
+   * Backend constraints (validated client-side, then re-checked server-side):
+   * - All members (`measures`, `dimensions`, `segments`, `filters[].member`,
+   *   `timeDimensions[].dimension`) must start with `SessionMetrics.`.
+   * - Total `measures.length + dimensions.length + segments.length` ≥ 1 and ≤ 12.
+   * - `timeDimensions[].granularity` cannot be `"second"`.
+   * - `limit` must be 1–5000 (default 1000).
+   *
+   * Violations raise a typed `ConvaiAnalyticsError` with `code` set to one
+   * of `empty_query`, `query_too_wide`, `invalid_member`,
+   * `forbidden_granularity`, or `invalid_limit`.
    */
-  async query(_cubeQuery: CubeQuery): Promise<CubeQueryResponse> {
-    throw new NotYetSupportedError("POST /query", "API Phase 3");
+  async query(cubeQuery: CubeQuery): Promise<CubeQueryResponse> {
+    validateCubeQuery(cubeQuery);
+    return this.post<CubeQueryResponse>("/query", cubeQuery);
   }
 
   // ---------- HTTP transport (used by resources/) ----------
@@ -158,7 +266,7 @@ export class ConvaiAnalytics {
     const url = new URL(this.#baseUrl + path);
     for (const [key, value] of Object.entries(params)) {
       if (value === undefined || value === null) continue;
-      url.searchParams.set(camelToSnake(key), String(value));
+      url.searchParams.set(camelToSnake(key), normalizeQueryValue(key, value));
     }
     return this.request<T>("GET", url, undefined);
   }
@@ -218,6 +326,56 @@ export class ConvaiAnalytics {
 
 function camelToSnake(s: string): string {
   return s.replace(/[A-Z]/g, (m) => "_" + m.toLowerCase());
+}
+
+const MEASURE_ALIASES: Record<string, string> = {
+  avgValue: "avg_value",
+  p50Value: "p50_value",
+  p95Value: "p95_value",
+  p99Value: "p99_value",
+  turnP50: "turn_p50",
+  turnP95: "turn_p95",
+  turnP99: "turn_p99",
+  turnMax: "turn_max",
+  uniqueSessions: "unique_sessions",
+  uniqueTurns: "unique_turns",
+  uniqueEndUsers: "unique_end_users",
+  errorCount: "error_count",
+};
+
+const GROUP_BY_ALIASES: Record<string, string> = {
+  voiceProvider: "voice_provider",
+  characterId: "character_id",
+  metricName: "metric_name",
+  metricType: "metric_type",
+  appKey: "app_key",
+  experienceId: "experience_id",
+};
+
+const SEGMENT_ALIASES: Record<string, string> = {
+  endToEndTurnLatency: "end_to_end_turn_latency",
+  neuroSyncTurnSummary: "neuro_sync_turn_summary",
+  customLatencyMetrics: "custom_latency_metrics",
+  userBotLatencyMetrics: "user_bot_latency_metrics",
+  smartTurnMetrics: "smart_turn_metrics",
+  sttMetrics: "stt_metrics",
+  vadMetrics: "vad_metrics",
+  ttsMetrics: "tts_metrics",
+  llmMetrics: "llm_metrics",
+};
+
+function normalizeQueryValue(key: string, value: unknown): string {
+  if (typeof value !== "string") return String(value);
+  switch (key) {
+    case "measure":
+      return MEASURE_ALIASES[value] ?? value;
+    case "groupBy":
+      return GROUP_BY_ALIASES[value] ?? value;
+    case "segment":
+      return SEGMENT_ALIASES[value] ?? value;
+    default:
+      return value;
+  }
 }
 
 function snakeToCamel(s: string): string {

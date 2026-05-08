@@ -25,6 +25,7 @@ jobs:
           cache-dependency-path: |
             packages/typescript/package-lock.json
             cli/package-lock.json
+            packages/mcp/package-lock.json
 
       - uses: actions/setup-python@v5
         with:
@@ -59,10 +60,30 @@ jobs:
           cache-dependency-path: |
             packages/typescript/package-lock.json
             cli/package-lock.json
+            packages/mcp/package-lock.json
       - run: make ts-install
       - run: make ts-lint
+      - run: make ts-typecheck-recipes
       - run: make ts-test
       - run: make ts-build
+
+  mcp:
+    name: MCP — typecheck, lint, test, build, smoke
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "npm"
+          cache-dependency-path: |
+            packages/typescript/package-lock.json
+            packages/mcp/package-lock.json
+      - run: make mcp-install
+      - run: make mcp-lint
+      - run: make mcp-test
+      - run: make mcp-build
+      - run: make mcp-smoke
 
   python:
     name: Python — lint, typecheck, test

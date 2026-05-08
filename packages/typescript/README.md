@@ -11,6 +11,8 @@ const summary = await client.summary({ range: "last_24h" });
 const trace = await client.interactions.get("int_8a31...");
 ```
 
+`CONVAI_API_KEY` is a bearer credential. Keep it server-side or in private agent workspaces; do not ship it in browser bundles, mobile apps, public repos, notebooks, screenshots, or logs.
+
 See the [repo root](../../) for full docs, recipes, and examples.
 
 ## API surface
@@ -32,4 +34,4 @@ Convenience facades (delegate to the above with sensible defaults — agent-frie
 - `client.errors.summary(...)` — error counts by component/provider
 - `client.usage.summary(...)` — sessions, audio minutes, end users
 
-These convenience methods are pure delegation — they mirror the future MCP server tool definitions.
+These convenience methods are pure delegation and match the curated tools exposed by `@convai/analytics-mcp`.

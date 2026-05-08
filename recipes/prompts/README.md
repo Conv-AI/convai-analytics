@@ -5,6 +5,7 @@ Drop-in natural-language prompts for the most common analytics questions. Point 
 | Recipe | Question |
 |---|---|
 | [why-was-this-session-slow.md](why-was-this-session-slow.md) | Diagnose latency for one specific session, end to end. |
+| [aggregate-latency-distribution.md](aggregate-latency-distribution.md) | Chart aggregate P50/P95/P99 latency for production sign-off. |
 | [p95-latency-trend.md](p95-latency-trend.md) | Track p95 e2e latency over time, optionally split by character. |
 | [component-bottlenecks.md](component-bottlenecks.md) | Which processor (LLM / TTS / Neurosync / ...) drives p95? |
 | [trace-explanation.md](trace-explanation.md) | Explain what happened in a single interaction id. |
