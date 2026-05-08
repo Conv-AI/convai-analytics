@@ -34,4 +34,4 @@ Convenience facades (delegate to the above with sensible defaults — agent-frie
 - `client.errors.summary(...)` — error counts by component/provider
 - `client.usage.summary(...)` — sessions, audio minutes, end users
 
-These convenience methods are pure delegation — they mirror the future MCP server tool definitions.
+These convenience methods are pure delegation and match the curated tools exposed by `@convai/analytics-mcp`.

@@ -1,4 +1,4 @@
-.PHONY: help sync-openapi sync-openapi-local check-openapi gen-types ts-install ts-build ts-test ts-lint e2e-stg py-install py-test py-lint cli-install cli-build clean
+.PHONY: help sync-openapi sync-openapi-local check-openapi gen-types ts-install ts-build ts-test ts-lint e2e-stg mcp-install mcp-build mcp-test mcp-lint mcp-smoke py-install py-test py-lint cli-install cli-build clean
 
 # Production source-of-truth — what `sync-openapi` curls in CI / local dev when
 # the API is reachable. Override via env to point at a different deploy.
@@ -22,6 +22,11 @@ help:
 	@echo "  make ts-test             Run TS tests"
 	@echo "  make ts-lint             Lint + typecheck TS"
 	@echo "  make e2e-stg             Run live SDK E2E against analytics-api-stg"
+	@echo "  make mcp-install         Install MCP deps after building the local TS SDK"
+	@echo "  make mcp-build           Build @convai/analytics-mcp"
+	@echo "  make mcp-test            Run MCP unit tests"
+	@echo "  make mcp-lint            Lint + typecheck MCP"
+	@echo "  make mcp-smoke           No-key MCP startup smoke"
 	@echo "  make py-install          Install Python SDK in editable mode"
 	@echo "  make py-test             Run Python tests"
 	@echo "  make py-lint             Ruff + mypy on Python SDK"
@@ -83,6 +88,22 @@ ts-lint:
 
 e2e-stg:
 	cd packages/typescript && npm run e2e:stg
+
+mcp-install:
+	cd packages/typescript && npm install && npm run build
+	cd packages/mcp && npm install
+
+mcp-build:
+	cd packages/mcp && npm run build
+
+mcp-test:
+	cd packages/mcp && npm test
+
+mcp-lint:
+	cd packages/mcp && npm run lint && npm run typecheck
+
+mcp-smoke:
+	cd packages/mcp && npm run smoke:no-key
 
 # Typecheck the example scripts and chart recipes against the live SDK
 # source. Catches bitrot: a method renamed or a type tightened in the SDK
