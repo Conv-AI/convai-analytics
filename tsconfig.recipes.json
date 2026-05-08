@@ -1,0 +1,27 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "lib": ["ES2022", "DOM"],
+    "types": ["node"],
+    "strict": true,
+    "noUncheckedIndexedAccess": true,
+    "noImplicitOverride": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "noEmit": true,
+    "baseUrl": ".",
+    "typeRoots": ["./packages/typescript/node_modules/@types"],
+    "paths": {
+      "@convai/analytics": ["./packages/typescript/src/index.ts"]
+    }
+  },
+  "include": [
+    "examples/node/**/*.ts",
+    "recipes/charts/**/*.ts"
+  ]
+}

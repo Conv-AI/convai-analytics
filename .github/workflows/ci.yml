@@ -1,0 +1,94 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+# Only one CI run per branch — newer pushes cancel older in-flight runs.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  generated-types-up-to-date:
+    name: Generated types match committed snapshot
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "npm"
+          cache-dependency-path: |
+            packages/typescript/package-lock.json
+            cli/package-lock.json
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - uses: astral-sh/setup-uv@v3
+
+      - name: Install package deps
+        run: |
+          make ts-install
+          make py-install
+
+      - name: Regenerate types from the committed OpenAPI snapshot
+        run: make gen-types
+
+      - name: Fail if regeneration produced a diff
+        run: |
+          if ! git diff --exit-code packages/typescript/src/_generated.ts packages/python/convai_analytics/_generated.py; then
+            echo "::error::_generated.{ts,py} drifted from openapi/convai-analytics-api.json. Run 'make gen-types' and commit."
+            exit 1
+          fi
+
+  typescript:
+    name: TypeScript — typecheck, lint, test, build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "npm"
+          cache-dependency-path: |
+            packages/typescript/package-lock.json
+            cli/package-lock.json
+      - run: make ts-install
+      - run: make ts-lint
+      - run: make ts-typecheck-recipes
+      - run: make ts-test
+      - run: make ts-build
+
+  python:
+    name: Python — lint, typecheck, test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - uses: astral-sh/setup-uv@v3
+      - run: make py-install
+      - run: make py-lint
+      - run: make py-test
+
+  # Soft-fail: this job pulls the live OpenAPI spec and diffs against the
+  # committed snapshot. Currently allowed to fail because the API isn't yet
+  # deployed at $ANALYTICS_API_OPENAPI; flip continue-on-error to false once
+  # the deploy lands.
+  openapi-snapshot-fresh:
+    name: OpenAPI snapshot matches live API
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: make check-openapi

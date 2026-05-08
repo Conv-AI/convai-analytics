@@ -3,6 +3,7 @@
  */
 
 import type { ConvaiAnalytics } from "../client.js";
+import { GROUP_BY, MEASURES } from "../measures.js";
 import type { BreakdownResponse, CommonFilters, TimeRange } from "../types.js";
 
 export interface UsageSummaryParams extends TimeRange, CommonFilters {
@@ -19,12 +20,12 @@ export class UsageFacade {
 
   /**
    * "How many sessions / unique end users / interactions did I have, by character?"
-   * Delegates to `breakdown(measure='uniqueSessions', groupBy=...)`.
+   * Delegates to `breakdown(measure=uniqueSessions, groupBy=...)`.
    */
   summary(params: UsageSummaryParams = {}): Promise<BreakdownResponse> {
-    const { groupBy = "characterId", ...rest } = params;
+    const { groupBy = GROUP_BY.characterId, ...rest } = params;
     return this.#client.breakdown({
-      measure: "uniqueSessions",
+      measure: MEASURES.uniqueSessions,
       groupBy,
       ...rest,
     });
@@ -32,9 +33,9 @@ export class UsageFacade {
 
   /** "How many interactions per character?" */
   interactions(params: UsageSummaryParams = {}): Promise<BreakdownResponse> {
-    const { groupBy = "characterId", ...rest } = params;
+    const { groupBy = GROUP_BY.characterId, ...rest } = params;
     return this.#client.breakdown({
-      measure: "uniqueTurns",
+      measure: MEASURES.uniqueTurns,
       groupBy,
       ...rest,
     });

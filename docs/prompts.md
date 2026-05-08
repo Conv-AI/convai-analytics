@@ -10,6 +10,7 @@ Drop-in natural-language prompts for the most common analytics questions. Each r
 ## Latency / debugging
 
 - [why-was-this-session-slow.md](../recipes/prompts/why-was-this-session-slow.md) — full debugging walkthrough for a slow session.
+- [aggregate-latency-distribution.md](../recipes/prompts/aggregate-latency-distribution.md) — aggregate P50/P95/P99 latency bands for systemic trend analysis and production sign-off.
 - [p95-latency-trend.md](../recipes/prompts/p95-latency-trend.md) — track p95 end-to-end latency over time, optionally split by character.
 - [component-bottlenecks.md](../recipes/prompts/component-bottlenecks.md) — which processor (LLM / TTS / Neurosync / ...) contributes most to p95.
 - [trace-explanation.md](../recipes/prompts/trace-explanation.md) — explain what happened in a single interaction id.

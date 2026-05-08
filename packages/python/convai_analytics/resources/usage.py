@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any
 
+from ..measures import GroupBy, Measures
 from ..types import BreakdownResponse
 
 if TYPE_CHECKING:
@@ -17,7 +18,7 @@ class UsageFacade:
     def summary(
         self,
         *,
-        group_by: str = "characterId",
+        group_by: str = GroupBy.CHARACTER_ID,
         **filters: Any,
     ) -> BreakdownResponse:
         """"How many sessions / unique end users / interactions did I have, by character?"
@@ -25,7 +26,7 @@ class UsageFacade:
         Delegates to ``breakdown(measure='uniqueSessions', group_by=...)``.
         """
         return self._client.breakdown(
-            measure="uniqueSessions",
+            measure=Measures.UNIQUE_SESSIONS,
             group_by=group_by,
             **filters,
         )
@@ -33,12 +34,12 @@ class UsageFacade:
     def interactions(
         self,
         *,
-        group_by: str = "characterId",
+        group_by: str = GroupBy.CHARACTER_ID,
         **filters: Any,
     ) -> BreakdownResponse:
         """"How many interactions per character?" """
         return self._client.breakdown(
-            measure="uniqueTurns",
+            measure=Measures.UNIQUE_TURNS,
             group_by=group_by,
             **filters,
         )

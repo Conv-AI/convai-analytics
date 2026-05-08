@@ -6,7 +6,11 @@ Runnable scripts that turn API responses into the standard chart formats.
 |---|---|---|---|
 | [latency_waterfall.ts](latency_waterfall.ts) | `--interaction <id>` | Horizontal waterfall of component spans | TypeScript |
 | [p95_over_time.ts](p95_over_time.ts) | `--character-id <id>` `--range <r>` | Line chart with p95 over time | TypeScript |
+| [latency_percentile_band.ts](latency_percentile_band.ts) | `--range <r>` `--p95-threshold-ms <n>` | P50/P95/P99 percentile band chart | TypeScript |
 | [component_breakdown.ts](component_breakdown.ts) | `--range <r>` | Stacked bar by processor | TypeScript |
+| [reliability_trends.ts](reliability_trends.ts) | `--range <r>` | Error and dropped-persist reliability trends | TypeScript |
+| [usage_trends.ts](usage_trends.ts) | `--range <r>` | Sessions, interactions, unique end users over time | TypeScript |
+| [concurrency_estimate.ts](concurrency_estimate.ts) | `--range <r>` | Active session / LiveKit room pressure proxy | TypeScript |
 | [session_timeline.py](session_timeline.py) | `--session <id>` | Event timeline (one row per metric) | Python |
 
 ## Conventions

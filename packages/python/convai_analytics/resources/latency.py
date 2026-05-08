@@ -4,15 +4,11 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any
 
+from ..measures import GroupBy, MetricNames, Segments, raw_value_percentile_measure
 from ..types import BreakdownResponse, TimeseriesResponse
 
 if TYPE_CHECKING:
     from ..client import ConvaiAnalytics
-
-
-def _percentile_measure(p: str) -> str:
-    """Cube measure names: turnP50, turnP75, turnP90, turnP95, turnP99."""
-    return f"turn{p.upper()}"
 
 
 class LatencyFacade:
@@ -27,13 +23,13 @@ class LatencyFacade:
     ) -> BreakdownResponse:
         """"Which component contributes most to my p95 end-to-end latency?"
 
-        Delegates to ``breakdown(measure='turnP95', group_by='processor',
+        Delegates to ``breakdown(measure='p95Value', group_by='processor',
         segment='endToEndTurnLatency')``.
         """
         return self._client.breakdown(
-            measure=_percentile_measure(percentile),
-            group_by="processor",
-            segment="endToEndTurnLatency",
+            measure=raw_value_percentile_measure(percentile),  # type: ignore[arg-type]
+            group_by=GroupBy.PROCESSOR,
+            segment=Segments.END_TO_END_TURN_LATENCY,
             **filters,
         )
 
@@ -46,12 +42,12 @@ class LatencyFacade:
     ) -> TimeseriesResponse:
         """"Plot p95 end-to-end latency over time."
 
-        Delegates to ``timeseries(measure='turnP95',
+        Delegates to ``timeseries(measure='p95Value',
         metric_name='voice.user_to_bot_latency')``.
         """
         return self._client.timeseries(
-            measure=_percentile_measure(percentile),
-            metric_name="voice.user_to_bot_latency",
+            measure=raw_value_percentile_measure(percentile),  # type: ignore[arg-type]
+            metric_name=MetricNames.VOICE_USER_TO_BOT_LATENCY,
             granularity=granularity,
             **filters,
         )

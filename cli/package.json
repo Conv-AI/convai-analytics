@@ -1,6 +1,6 @@
 {
   "name": "@convai/analytics-cli",
-  "version": "0.0.1",
+  "version": "0.2.0",
   "description": "CLI for the Convai analytics API.",
   "type": "module",
   "bin": {
@@ -19,7 +19,7 @@
     "start": "node dist/index.js"
   },
   "dependencies": {
-    "@convai/analytics": "*",
+    "@convai/analytics": "file:../packages/typescript",
     "commander": "^12.0.0"
   },
   "devDependencies": {

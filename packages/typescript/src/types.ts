@@ -1,15 +1,24 @@
 /**
- * Public types for the analytics SDK. Hand-written for now; will be
- * regenerated from `openapi/convai-analytics-api.json` once Phase 4 of
- * the API repo lands real schemas.
+ * Public types for the analytics SDK.
+ *
+ * Response shapes are aliased from the auto-generated `_generated.ts` —
+ * source of truth is `openapi/convai-analytics-api.json`. *Param* shapes
+ * (what the SDK accepts) are hand-written: they intentionally narrow the
+ * raw OpenAPI query-string surface to the subset the backend actually
+ * honors today, since unrecognized query params would be silently
+ * dropped with no client-side feedback.
  *
  * Naming convention: camelCase in TS, the HTTP transport in client.ts
- * handles snake_case ↔ camelCase mapping at the wire boundary.
+ * handles snake_case ↔ camelCase mapping at the wire boundary. Outgoing
+ * query params are converted camelCase → snake_case to match the
+ * backend's FastAPI Query aliases (e.g. `characterId` → `character_id`).
  */
+
+import type { components } from "./_generated.js";
 
 // ---------- Time & shared ----------
 
-/** Convenience relative-range strings accepted by every endpoint. */
+/** Relative-range tokens accepted by every windowed endpoint. */
 export type RelativeRange =
   | "last_15m"
   | "last_1h"
@@ -18,11 +27,14 @@ export type RelativeRange =
   | "last_7d"
   | "last_30d";
 
+/**
+ * Time-window selector. Backend currently only honors `range` (relative
+ * tokens); `startTime` / `endTime` (absolute) lands in a future API
+ * release. Until then the SDK accepts only `range` to avoid silent
+ * filter-drop bugs.
+ */
 export interface TimeRange {
-  /** Either a relative range OR an explicit start/end pair. */
   range?: RelativeRange;
-  startTime?: string; // ISO 8601, UTC
-  endTime?: string;
 }
 
 export type Percentile = "p50" | "p75" | "p90" | "p95" | "p99";
@@ -45,6 +57,10 @@ export type Processor =
 
 export type Status = "ok" | "error" | "timeout" | "cancelled";
 
+/**
+ * Filter dimensions accepted by `/timeseries` and `/breakdown`. Each is
+ * forwarded as a snake_case query param (`characterId` → `character_id`).
+ */
 export interface CommonFilters {
   appKey?: string;
   characterId?: string;
@@ -58,29 +74,38 @@ export interface CommonFilters {
   status?: Status;
 }
 
-/** Server-attached metadata on every response — explainability */
-export interface ResponseMeta {
-  /** When the underlying data was last refreshed. ISO 8601. */
-  freshnessAt: string;
-  /** Sample count used to compute the response. */
-  sampleCount: number;
-  /** Effective time range (after defaults applied). */
-  effectiveRange: { startTime: string; endTime: string };
-  /** Backend that served the query. Internal — agents shouldn't depend on this. */
-  backend?: "cube" | "bq";
-  /** Whether this response came from cache. */
-  cacheHit?: boolean;
-}
+// ---------- Response aliases (generated source of truth) ----------
 
-// ---------- summary ----------
+export type ResponseMeta = components["schemas"]["ResponseMeta"];
+export type EffectiveRange = components["schemas"]["EffectiveRange"];
+export type SummaryResponse = components["schemas"]["SummaryResponse"];
+export type TimeseriesResponse = components["schemas"]["TimeseriesResponse"];
+export type TimeseriesPoint = components["schemas"]["TimeseriesPoint"];
+export type BreakdownResponse = components["schemas"]["BreakdownResponse"];
+export type BreakdownRow = components["schemas"]["BreakdownRow"];
+export type SessionListResponse = components["schemas"]["SessionListResponse"];
+export type SessionSummary = components["schemas"]["SessionSummary"];
+export type SessionDetail = components["schemas"]["SessionDetail"];
+export type SessionTimelineEvent = components["schemas"]["SessionTimelineEvent"];
+export type InteractionTrace = components["schemas"]["InteractionTrace"];
+export type ComponentSpan = components["schemas"]["ComponentSpan"];
+export type CatalogResponse = components["schemas"]["CatalogResponse"];
+export type MetricDefinition = components["schemas"]["MetricDefinition"];
+/** Backend type is named `RegressionResponse`; SDK keeps the historical
+ * `RegressionDetectionResponse` name for the public surface. */
+export type RegressionDetectionResponse = components["schemas"]["RegressionResponse"];
+export type RegressionDetectionRow = components["schemas"]["RegressionRow"];
+/** Backend's POST body type. SDK exposes both `CubeQuery` (input) and
+ * `CubeQueryRequest` (raw alias) so users can pick the name they prefer. */
+export type CubeQueryRequest = components["schemas"]["CubeQueryRequest"];
+export type CubeQuery = CubeQueryRequest;
+export type CubeQueryResponse = components["schemas"]["CubeQueryResponse"];
+export type CubeFilter = components["schemas"]["CubeFilter"];
+export type CubeTimeDimension = components["schemas"]["CubeTimeDimension"];
 
-/**
- * Narrow set — these are the only fields the analytics API's `/summary`
- * endpoint reads today. `startTime`/`endTime` and the rest of `CommonFilters`
- * (endUserId, metricName, provider, model, processor, status) land alongside
- * the broader endpoint surface in API Phase 2; until then they would be
- * silently dropped on the wire and produce wrong-but-plausible numbers.
- */
+// ---------- Param shapes (hand-written, narrow to honored fields) ----------
+
+/** `/summary` only honors `range` + the three id filters today. */
 export interface SummaryParams {
   range?: RelativeRange;
   characterId?: string;
@@ -88,202 +113,64 @@ export interface SummaryParams {
   experienceId?: string;
 }
 
-export interface SummaryResponse {
-  sessions: number;
-  uniqueEndUsers: number;
-  interactions: number;
-  errorCount: number;
-  p50EndToEndMs: number;
-  p95EndToEndMs: number;
-  p99EndToEndMs: number;
-  meta: ResponseMeta;
-}
-
-// ---------- timeseries ----------
-
+/**
+ * `/timeseries` query params. `measure` defaults server-side to "count".
+ * Granularity defaults to "hour".
+ */
 export interface TimeseriesParams extends TimeRange, CommonFilters {
-  /** What to plot. e.g. `p95Value`, `count`, `avgValue`. */
-  measure: string;
-  /** Bucket size. Server picks a sensible default if omitted. */
+  /** Measure token, e.g. `count`, `avg`, `p95`, `turn_p95`. Default "count" server-side. */
+  measure?: string;
+  /** Bucket size. Default "hour". */
   granularity?: "minute" | "hour" | "day";
-  /** Optional group-by — a separate series per group value. */
+  /** Optional group key — emits a separate series per group value. */
   groupBy?: string;
-}
-
-export interface TimeseriesPoint {
-  bucketStart: string; // ISO 8601
-  group?: string;      // present when groupBy is set
-  value: number | null;
-}
-
-export interface TimeseriesResponse {
-  measure: string;
-  granularity: "minute" | "hour" | "day";
-  points: TimeseriesPoint[];
-  meta: ResponseMeta;
-}
-
-// ---------- breakdown ----------
-
-export interface BreakdownParams extends TimeRange, CommonFilters {
-  measure: string;
-  groupBy: string;
-  /** Limit number of returned groups; default 50. */
-  limit?: number;
-  /** Optional Cube segment to scope (e.g. `endToEndTurnLatency`, `llmMetrics`). */
+  /** Optional Cube segment scope (e.g. `endToEndTurnLatency`). */
   segment?: string;
 }
 
-export interface BreakdownRow {
-  group: string;
-  value: number | null;
-  sampleCount: number;
+/**
+ * `/breakdown` query params. `groupBy` defaults to "processor", `limit` to 50.
+ */
+export interface BreakdownParams extends TimeRange, CommonFilters {
+  /** Measure token, e.g. `count`, `p95`, `turn_p95`. Default "count" server-side. */
+  measure?: string;
+  /** Group key. Default "processor" server-side. */
+  groupBy?: string;
+  /** Number of rows. 1–500. Default 50. */
+  limit?: number;
+  /** Optional Cube segment scope. */
+  segment?: string;
 }
 
-export interface BreakdownResponse {
-  measure: string;
-  groupBy: string;
-  rows: BreakdownRow[];
-  meta: ResponseMeta;
-}
-
-// ---------- sessions ----------
-
-export interface SessionListParams extends TimeRange, CommonFilters {
-  /** Sort order; default `recent`. */
+/**
+ * `/sessions` query params. `sort` defaults to "recent"; `limit` defaults to 25.
+ * Pagination via opaque `cursor` returned by the previous response.
+ */
+export interface SessionListParams extends TimeRange {
   sort?: "recent" | "longest" | "slowest";
-  /** Cursor returned by the previous page; omit for first page. */
+  /** 1–100. Default 25. */
+  limit?: number;
+  /** Opaque cursor from the previous response's `nextCursor`. */
   cursor?: string;
-  limit?: number;
-}
-
-export interface SessionSummary {
-  sessionId: string;
-  characterId: string;
-  appKey: string;
+  appKey?: string;
+  characterId?: string;
   experienceId?: string;
-  startTime: string;
-  endTime: string;
-  durationSec: number;
-  interactionCount: number;
-  p95EndToEndMs: number;
-  errorCount: number;
-}
-
-export interface SessionListResponse {
-  sessions: SessionSummary[];
-  nextCursor?: string;
-  meta: ResponseMeta;
-}
-
-export interface SessionTimelineEvent {
-  eventTime: string;
-  metricName: string;
-  metricType: string;
-  processor?: Processor;
-  interactionId?: string;
-  status?: Status;
-  value?: number | null;
-  attributes?: Record<string, unknown>;
-}
-
-export interface SessionDetail {
-  sessionId: string;
-  characterId: string;
-  appKey: string;
-  experienceId?: string;
-  startTime: string;
-  endTime: string;
-  events: SessionTimelineEvent[];
-  meta: ResponseMeta;
-}
-
-// ---------- interactions ----------
-
-export interface ComponentSpan {
-  processor: Processor;
-  startTime: string;
-  endTime: string;
-  durationMs: number;
-  status: Status;
-  provider?: string;
-  model?: string;
-  errorCode?: string;
-  attributes?: Record<string, unknown>;
-}
-
-export interface InteractionTrace {
-  interactionId: string;
-  sessionId: string;
-  characterId: string;
-  appKey: string;
   endUserId?: string;
-  interactionType: string;
-  startTime: string;
-  endTime: string;
-  totalDurationMs: number;
-  terminalStatus: Status;
-  failureStage?: Processor;
-  spans: ComponentSpan[];
-  meta: ResponseMeta;
 }
 
-// ---------- catalog ----------
-
-export interface MetricDefinition {
-  metricName: string;
-  metricType: string;
-  unit?: string;
-  description: string;
-  visibility: "public" | "enterprise" | "internal";
-  /** Whether percentile aggregations make sense for this metric. */
-  supportsPercentiles: boolean;
-}
-
-export interface CatalogResponse {
-  metrics: MetricDefinition[];
-  meta: ResponseMeta;
-}
-
-// ---------- advanced ----------
-
-export interface RegressionDetectionParams extends CommonFilters {
-  baselineRange: RelativeRange;
-  currentRange: RelativeRange;
-  measure: string;
-  /** Minimum relative change to flag as a regression; default 0.15 (15%). */
+/**
+ * `/regression-detection` query params. Requires plan ≥ business.
+ * `baselineRange` must cover a longer window than `currentRange`.
+ */
+export interface RegressionDetectionParams {
+  /** Default "voice.user_to_bot_latency" server-side. */
+  measure?: string;
+  /** Default "last_7d" server-side. */
+  baselineRange?: RelativeRange;
+  /** Default "last_24h" server-side. */
+  currentRange?: RelativeRange;
+  /** One of: overall | app_key | character_id | experience_id | provider | voice_provider | model. Default "overall". */
+  groupBy?: string;
+  /** Minimum relative change to flag. 0.0–10.0. Default 0.15 (15%). */
   threshold?: number;
-}
-
-export interface RegressionDetectionRow {
-  group: string;
-  baselineValue: number;
-  currentValue: number;
-  relativeChange: number;
-  significant: boolean;
-}
-
-export interface RegressionDetectionResponse {
-  rows: RegressionDetectionRow[];
-  meta: ResponseMeta;
-}
-
-/** Restricted Cube query — see API repo docs for the allowed subset. */
-export interface CubeQuery {
-  measures?: string[];
-  dimensions?: string[];
-  segments?: string[];
-  filters?: Array<{ member: string; operator: string; values: string[] }>;
-  timeDimensions?: Array<{
-    dimension: string;
-    granularity?: string;
-    dateRange?: string | [string, string];
-  }>;
-  limit?: number;
-  order?: Record<string, "asc" | "desc">;
-}
-
-export interface CubeQueryResponse {
-  data: Array<Record<string, unknown>>;
-  meta: ResponseMeta;
 }

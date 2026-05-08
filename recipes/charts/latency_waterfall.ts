@@ -38,14 +38,20 @@ function buildVegaSpec(
   spans: ComponentSpan[],
 ): Record<string, unknown> {
   // Normalize start times to ms-since-trace-start so the waterfall is anchored at 0.
-  if (spans.length === 0) return { mark: "bar", data: { values: [] } };
-  const t0 = Math.min(...spans.map((s) => Date.parse(s.startTime)));
-  const data = spans.map((s) => ({
-    processor: s.processor,
+  // Drop spans without a usable start; backend marks `startTime` nullable for
+  // metrics that don't have a true span start.
+  const timed = spans.filter(
+    (s): s is ComponentSpan & { startTime: string } =>
+      typeof s.startTime === "string",
+  );
+  if (timed.length === 0) return { mark: "bar", data: { values: [] } };
+  const t0 = Math.min(...timed.map((s) => Date.parse(s.startTime)));
+  const data = timed.map((s) => ({
+    processor: s.processor ?? "?",
     start: Date.parse(s.startTime) - t0,
-    end: Date.parse(s.endTime) - t0,
-    durationMs: s.durationMs,
-    status: s.status,
+    end: typeof s.endTime === "string" ? Date.parse(s.endTime) - t0 : null,
+    durationMs: s.durationMs ?? 0,
+    status: s.status ?? "ok",
     provider: s.provider ?? "",
   }));
 

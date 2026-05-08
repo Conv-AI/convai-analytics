@@ -1,16 +1,15 @@
 /**
  * End-to-end implementation of recipes/prompts/why-was-this-session-slow.md.
  *
- * STATUS: requires API Phase 2 (sessions + interactions endpoints). Today
- * the script catches `NotYetSupportedError` and exits with a clear message.
- * For a working smoke example, see `account-summary.ts`.
+ * Pulls a session, finds the slowest interaction by user-to-bot latency,
+ * fetches its component waterfall, and reports the bottleneck.
  *
- * Run (once Phase 2 lands):
+ * Run:
  *   export CONVAI_API_KEY=ck_live_...
  *   npx tsx examples/node/why-was-this-session-slow.ts s_8a31abcd1234
  */
 
-import { ConvaiAnalytics, NotYetSupportedError } from "@convai/analytics";
+import { ConvaiAnalytics } from "@convai/analytics";
 
 async function main(): Promise<void> {
   const sessionId = process.argv[2];
@@ -21,11 +20,11 @@ async function main(): Promise<void> {
 
   const client = new ConvaiAnalytics();
 
-  // Step 1 — pull the session timeline.
+  // 1. Pull the session timeline.
   const session = await client.sessions.get(sessionId);
   console.log(`Session ${sessionId}: ${session.events.length} events`);
 
-  // Step 2 — find the worst interaction by voice.user_to_bot_latency.
+  // 2. Find the worst interaction by voice.user_to_bot_latency.
   const turns = session.events
     .filter((e) => e.metricName === "voice.user_to_bot_latency")
     .sort((a, b) => (b.value ?? 0) - (a.value ?? 0));
@@ -37,34 +36,35 @@ async function main(): Promise<void> {
   }
   console.log(`Worst turn: ${worst.interactionId} (${worst.value} ms)`);
 
-  // Step 3 — pull the full trace.
+  // 3. Pull the full trace.
   const trace = await client.interactions.get(worst.interactionId);
 
-  // Step 4 — identify the bottleneck (excluding network/transport).
+  // 4. Identify the bottleneck (excluding network/transport).
   const bottleneck = trace.spans
     .filter((s) => s.processor !== "transport")
-    .sort((a, b) => b.durationMs - a.durationMs)[0];
+    .sort((a, b) => (b.durationMs ?? 0) - (a.durationMs ?? 0))[0];
 
   if (!bottleneck) {
     console.log("Trace has no actionable component spans.");
     return;
   }
 
+  const provider = bottleneck.provider
+    ? `, provider=${bottleneck.provider}/${bottleneck.model ?? ""}`
+    : "";
   console.log(
-    `\nBottleneck: ${bottleneck.processor} (${bottleneck.durationMs} ms` +
-      (bottleneck.provider ? `, provider=${bottleneck.provider}/${bottleneck.model ?? ""}` : "") +
-      `)`,
+    `\nBottleneck: ${bottleneck.processor ?? "?"} (${bottleneck.durationMs ?? 0} ms${provider})`,
   );
-  console.log(`Status: ${trace.terminalStatus}`);
+  console.log(`Status: ${trace.terminalStatus ?? "?"}`);
 
-  // Step 5 — print the full waterfall as a quick text report.
+  // 5. Print the full waterfall as a quick text report.
   console.log("\nFull waterfall:");
   for (const s of trace.spans) {
-    console.log(
-      `  ${s.processor.padEnd(15)} ${String(s.durationMs).padStart(5)} ms ${
-        s.provider ? `[${s.provider}/${s.model ?? ""}]` : ""
-      }${s.errorCode ? `  ERROR ${s.errorCode}` : ""}`,
-    );
+    const label = (s.processor ?? "?").padEnd(15);
+    const ms = String(s.durationMs ?? 0).padStart(5);
+    const tags = s.provider ? `[${s.provider}/${s.model ?? ""}]` : "";
+    const err = s.errorCode ? `  ERROR ${s.errorCode}` : "";
+    console.log(`  ${label} ${ms} ms ${tags}${err}`);
   }
 
   console.log(
