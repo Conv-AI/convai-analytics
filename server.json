@@ -3,7 +3,7 @@
   "name": "io.github.Conv-AI/convai-analytics-mcp",
   "title": "Convai Analytics",
   "description": "Analyze Convai sessions, latency, reliability, usage, and provider telemetry via API key.",
-  "version": "0.2.2",
+  "version": "0.2.3",
   "websiteUrl": "https://github.com/Conv-AI/convai-analytics/tree/main/packages/mcp",
   "repository": {
     "url": "https://github.com/Conv-AI/convai-analytics",
@@ -16,7 +16,7 @@
       "registryType": "npm",
       "registryBaseUrl": "https://registry.npmjs.org",
       "identifier": "@convai/analytics-mcp",
-      "version": "0.2.2",
+      "version": "0.2.3",
       "transport": {
         "type": "stdio"
       },
