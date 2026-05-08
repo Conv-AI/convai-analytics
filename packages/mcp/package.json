@@ -1,11 +1,11 @@
 {
   "name": "@convai/analytics-mcp",
-  "version": "0.2.0",
-  "mcpName": "io.github.conv-ai/convai-analytics-mcp",
+  "version": "0.2.1",
+  "mcpName": "io.github.Conv-AI/convai-analytics-mcp",
   "description": "Local stdio MCP server for the Convai analytics API. Designed for AI agents using a customer Convai API key.",
   "type": "module",
   "bin": {
-    "convai-analytics-mcp": "./dist/index.js"
+    "convai-analytics-mcp": "dist/index.js"
   },
   "main": "./dist/index.js",
   "module": "./dist/index.js",
