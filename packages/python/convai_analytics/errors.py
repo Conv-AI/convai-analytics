@@ -34,7 +34,7 @@ class PlanInsufficientError(ConvaiAnalyticsError):
 
 
 class NotFoundError(ConvaiAnalyticsError):
-    """404 — resource not found (or not owned by caller's tenant)."""
+    """404 — resource not found (or not owned by the caller's account)."""
 
 
 class ValidationError(ConvaiAnalyticsError):

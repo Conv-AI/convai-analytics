@@ -1,4 +1,4 @@
-"""Cube vocabulary the SDK passes to the backend.
+"""Analytics metric vocabulary the SDK passes to the backend.
 
 ``Measures``, ``Segments``, and ``GroupBy`` mirror the keys the backend's
 ``MEASURE_MAP`` / ``SEGMENT_MAP`` / ``GROUP_BY_MAP`` tables in
@@ -19,7 +19,7 @@ from .types import Percentile
 
 
 class Measures:
-    """Cube measures the backend understands."""
+    """Metric measures the backend understands."""
 
     # Counts
     COUNT: Final = "count"
@@ -63,7 +63,7 @@ def raw_value_percentile_measure(p: Percentile) -> str:
 
 
 class Segments:
-    """Cube segments — scope a query to a metric family."""
+    """Segments scope a query to a metric family."""
 
     END_TO_END_TURN_LATENCY: Final = "endToEndTurnLatency"
     ASR_METRICS: Final = "asrMetrics"

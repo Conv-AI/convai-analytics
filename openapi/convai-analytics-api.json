@@ -1149,7 +1149,7 @@
     }
   },
   "info": {
-    "description": "Per-tenant access to Convai session latency telemetry. Endpoints are authenticated via the CONVAI-API-KEY header and plan-gated from the scale tier up. See the published OpenAPI spec at /v1/analytics/openapi.json.",
+    "description": "Per-account access to Convai session latency telemetry. Endpoints are authenticated via the CONVAI-API-KEY header and plan-gated from the scale tier up. See the published OpenAPI spec at /v1/analytics/openapi.json.",
     "title": "Convai Analytics API",
     "version": "0.1.0"
   },
@@ -1179,7 +1179,7 @@
     },
     "/readyz": {
       "get": {
-        "description": "Readiness probe.\n\nReturns 200 when the service is ready to accept traffic. For the initial\nshell this is identical to ``/healthz``; future work should check Redis,\nCube, and BigQuery connectivity here and return 503 on backend failure.",
+        "description": "Readiness probe.\n\nReturns 200 when the service is ready to accept traffic.",
         "operationId": "readyz_readyz_get",
         "responses": {
           "200": {
@@ -1626,7 +1626,7 @@
             "description": "Validation Error"
           }
         },
-        "summary": "Restricted Cube passthrough \u2014 advanced queries within a fixed schema",
+        "summary": "Restricted advanced query within a fixed schema",
         "tags": [
           "analytics"
         ]
@@ -1727,7 +1727,7 @@
             "description": "Validation Error"
           }
         },
-        "summary": "Rolling-window p95 regression detection (BigQuery escape hatch)",
+        "summary": "Rolling-window p95 regression detection",
         "tags": [
           "analytics"
         ]

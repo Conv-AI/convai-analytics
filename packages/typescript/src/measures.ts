@@ -1,5 +1,5 @@
 /**
- * Cube vocabulary the SDK passes to the backend.
+ * Analytics metric vocabulary the SDK passes to the backend.
  *
  * `MEASURES`, `SEGMENTS`, and `GROUP_BY` mirror the keys the backend's
  * `MEASURE_MAP` / `SEGMENT_MAP` / `GROUP_BY_MAP` tables in
@@ -14,7 +14,7 @@
 
 import type { Percentile } from "./types.js";
 
-/** Cube measures the backend understands. */
+/** Metric measures the backend understands. */
 export const MEASURES = {
   // Counts
   count: "count",
@@ -56,7 +56,7 @@ export function percentileMeasure(p: Percentile): MeasureName {
 /**
  * Convert a percentile to the raw `value` percentile measure.
  *
- * Cube currently exposes raw-value measures for p50/p95/p99. For p75/p90
+ * The API currently exposes raw-value measures for p50/p95/p99. For p75/p90
  * we fall back to the historical turn-summary measures so existing callers
  * keep working until the backend exposes raw p75/p90 too.
  */
@@ -74,7 +74,7 @@ export function rawValuePercentileMeasure(p: Percentile): MeasureName {
   }
 }
 
-/** Cube segments — scope a query to a metric family. */
+/** Segments scope a query to a metric family. */
 export const SEGMENTS = {
   endToEndTurnLatency: "endToEndTurnLatency",
   asrMetrics: "asrMetrics",

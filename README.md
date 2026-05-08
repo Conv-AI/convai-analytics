@@ -1,14 +1,12 @@
 # convai-analytics
 
-Agentic analytics for Convai customers.
+Agentic analytics for Convai applications.
 
-This repository gives coding agents and developers a safe, repeatable way to ask questions about Convai session telemetry using only:
+This repository lets MCP-capable agents, coding agents, and developers answer questions about Convai session telemetry using only a Convai API key. The recommended path is the local MCP server, `@convai/analytics-mcp`, which plugs into Claude Desktop, Cursor, Codex-compatible MCP clients, and other stdio MCP hosts so agents can call typed analytics tools instead of writing custom scripts.
 
-1. this repo,
-2. a Convai API key,
-3. normal TypeScript, Python, or CLI commands.
+For developers who want direct programmatic access, the repo also includes TypeScript, Python, and CLI clients that use the same public Analytics API.
 
-Instead of manually exporting BigQuery data or clicking through one trace at a time, you can ask questions like:
+Ask questions like:
 
 > How many interactions did my characters have in the last 7 days?
 >
@@ -26,17 +24,17 @@ The SDK calls Convai's hosted analytics API at `https://analytics-api.convai.com
 
 ## What This Is
 
+- **A local MCP server** in `packages/mcp` that exposes the main analytics questions as typed agent tools.
 - **A TypeScript SDK** in `packages/typescript`.
 - **A Python SDK** in `packages/python`.
 - **A CLI** in `cli`.
-- **A local MCP server** in `packages/mcp` that exposes the main analytics questions as typed agent tools.
 - **Prompt recipes** in `recipes/prompts` that tell an AI agent exactly which calls to make for common analytics questions.
 - **Chart recipes** in `recipes/charts` that generate Vega-Lite specs or Plotly timelines for latency, usage, reliability, and concurrency analysis.
 
 ## What This Is Not
 
 - **Not a client-side browser SDK.** Your Convai API key is a bearer secret. Do not put it in browser JavaScript, mobile apps, public notebooks, screenshots, logs, or committed config files.
-- **Not a BigQuery client.** This repo never connects to your database or Convai's data warehouse. All reads go through the hosted analytics API.
+- **Not a direct data-store client.** All reads go through Convai's hosted Analytics API with server-side account scoping, plan checks, and quota enforcement.
 - **Not a write API.** It only reads analytics data. It does not mutate characters, sessions, configs, or telemetry.
 - **Not a replacement for the Convai dashboard.** It is the programmable and agent-friendly surface for deeper analysis, automation, and chart generation.
 
@@ -71,7 +69,32 @@ export CONVAI_API_KEY="ck_live_your_key_here"
 
 The SDK reads `CONVAI_API_KEY` automatically. You normally do **not** need to set a base URL; production is the default.
 
-## First Run From A Fresh Clone
+## Recommended: MCP From A Fresh Client
+
+For agent workflows, start here:
+
+```bash
+export CONVAI_API_KEY="ck_live_your_key_here"
+npx -y @convai/analytics-mcp
+```
+
+Then connect that command to Claude Desktop, Cursor, Codex-compatible MCP clients, or any stdio MCP host. Once connected, ask normal analytics questions:
+
+```text
+Show aggregate P50/P95/P99 latency for the last 30 days and generate a chart.
+```
+
+```text
+Which component is driving p95 latency, and which sessions should I inspect?
+```
+
+```text
+Show usage trends, unique end users, active-session concurrency, and provider/model latency charts.
+```
+
+See [packages/mcp/README.md](packages/mcp/README.md) for client setup snippets.
+
+## Developer SDK Path From A Fresh Clone
 
 ```bash
 git clone https://github.com/Conv-AI/convai-analytics.git
@@ -98,12 +121,12 @@ Expected result: a short account summary with sessions, end users, interactions,
 
 ## Use With A Coding Agent
 
-Open this repo in Codex, Claude Code, Cursor, or a similar coding agent. Give the agent this instruction:
+If your agent does not support MCP, open this repo in Codex, Claude Code, Cursor, or a similar coding agent. Give the agent this instruction:
 
 ```text
 Use this repository and my CONVAI_API_KEY environment variable to answer analytics questions.
 First read README.md, docs/concepts.md, docs/metrics-reference.md, and recipes/prompts/README.md.
-Use the SDK or recipes; do not ask for database access.
+Prefer MCP when available; otherwise use the SDK or recipes. Do not ask for direct data-store access.
 Keep the API key private and do not print it.
 ```
 
@@ -128,7 +151,7 @@ The agent should use `recipes/prompts` for the call sequence and `recipes/charts
 
 ## MCP Server
 
-The fastest path for MCP-capable agents is `@convai/analytics-mcp`. It is a local stdio MCP server that wraps only the public TypeScript SDK. It reads `CONVAI_API_KEY`, optionally reads `CONVAI_ANALYTICS_BASE_URL`, and never accepts account overrides, database URLs, BigQuery access, service credentials, or Cube secrets.
+The fastest path for MCP-capable agents is `@convai/analytics-mcp`. It is a local stdio MCP server that wraps only the public TypeScript SDK. It reads `CONVAI_API_KEY`, optionally reads `CONVAI_ANALYTICS_BASE_URL`, and never accepts account overrides, service credentials, database URLs, or other internal access paths.
 
 Run it directly:
 

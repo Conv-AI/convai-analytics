@@ -20,7 +20,7 @@ new ConvaiAnalytics({ apiKey: "ck_live_..." });
 ConvaiAnalytics(api_key="ck_live_...")
 ```
 
-The key resolves server-side (via Convai Middleman) to a `(tenant_id, plan)` pair. **All authorization happens server-side** — every query is forcibly scoped to your tenant before any data is read. The SDK does not (and cannot) influence the scoping.
+The key resolves server-side to your Convai account and plan. **All authorization happens server-side** — every query is forcibly scoped to your account before any data is read. The SDK does not (and cannot) influence the scoping.
 
 Keep the key server-side. `CONVAI_API_KEY` is a bearer credential: whoever has it can query analytics for the resolved account subject to that account's plan and quota. Do not put it in browser JavaScript, mobile apps, public repos, shared notebooks, screenshots, or log output. For product UIs, proxy analytics requests through your own backend or a Convai-managed authenticated surface instead of calling the API directly from an untrusted client.
 
@@ -34,7 +34,7 @@ The analytics API is gated by plan:
 | **scale** | ✅ | PUBLIC | Basic REST endpoints, rate-limited. |
 | **business** | ✅ | PUBLIC + ENTERPRISE | Adds `regression-detection` and the `query` passthrough; per-processor breakdowns. |
 | **enterprise** | ✅ | PUBLIC + ENTERPRISE | Higher quotas, longer retention, SLAs. |
-| internal (Convai staff) | ✅ | PUBLIC + ENTERPRISE + INTERNAL | Used by Convai support and engineering only. |
+| Convai-managed support access | ✅ | PUBLIC + ENTERPRISE + CONVAI-MANAGED | Used only by authorized Convai operators when supporting customers. |
 
 A request below the required plan returns:
 - **402 Payment Required** if your plan is below `scale` (no API access at all).
@@ -54,13 +54,13 @@ When you exceed the limit you get **429 Too Many Requests** with a `Retry-After`
 
 ## Visibility tiers
 
-Every metric row in the Convai telemetry has a `visibility` tag: `public`, `enterprise`, or `internal`. Your plan determines which tiers your queries can see:
+Some analytics fields are available only on higher plans. Your plan determines which data families your queries can see:
 
-- **scale** → `public` only
-- **business** / **enterprise** → `public` + `enterprise`
-- **internal** → all three (Convai staff only)
+- **scale** → standard analytics fields
+- **business** / **enterprise** → standard analytics fields plus advanced breakdowns
+- **Convai-managed support access** → additional operator-only fields when authorized for customer support
 
-This is enforced inside the Cube semantic layer — the `INTERNAL` tier never leaves Convai's perimeter, regardless of how a query is constructed.
+This is enforced server-side. Convai-managed operator fields never leave Convai's perimeter through customer API keys, regardless of how a query is constructed.
 
 ## Errors
 

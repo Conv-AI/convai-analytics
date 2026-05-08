@@ -86,7 +86,7 @@ uv publish
 ## Security Checklist
 
 - Package tarballs contain only public SDK, CLI, MCP, docs, and examples.
-- No package contains service credentials, direct database clients, BigQuery connection code, Cube secrets, or tenant/account override paths.
+- No package contains service credentials, direct data-store clients, internal service secrets, or account override paths.
 - MCP startup and tool errors do not print `CONVAI_API_KEY`.
 - Plan-gated tools surface 402/403 as typed MCP tool errors rather than silently falling back.
 - `server.json` validates against the Official MCP Registry schema.

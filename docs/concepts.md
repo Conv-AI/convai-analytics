@@ -1,6 +1,6 @@
 # Concepts
 
-The Convai analytics data model. Read this before writing custom queries — it's the shared vocabulary between the SDK, the REST API, the recipes, and the underlying Cube semantic layer.
+The Convai analytics data model. Read this before writing custom queries — it is the shared vocabulary between the SDK, the REST API, and the recipes.
 
 ## Object hierarchy
 
@@ -17,7 +17,7 @@ You can filter most queries by any level: `accountId` (implicit, from API key), 
 
 ## Account
 
-Your tenant. Resolved server-side from the API key — you never pass `tenant_id` or `account_id` explicitly. Every query is forcibly scoped to your account before any data is read.
+Your Convai account. It is resolved server-side from the API key — you never pass account override fields explicitly. Every query is forcibly scoped to your account before any data is read.
 
 ## App / Project / App Key
 
@@ -71,14 +71,14 @@ Component spans are what `recipes/charts/latency_waterfall.ts` renders.
 
 ## Metric
 
-The atomic unit of telemetry. Every row in the underlying `core_service_metrics` BigQuery table is one metric, identified by:
+The atomic unit of queryable telemetry. Each metric is identified by:
 
 - `metric_name` — e.g. `voice.user_to_bot_latency`, `neurosync.turn_summary`, `llm.ttfb`, `tts.text_to_first_audio`, `stt.transcript_aggregation`, `vad.speech_confirmation_delay`
 - `metric_type` — coarse categorization: `TTFBMetricsData`, `ProcessingMetricsData`, `NeuroSyncMetricsData`, `CustomLatencyMetricsData`, `UserBotLatencyMetricsData`, `LLMUsageMetricsData`, `TTSUsageMetricsData`, `SmartTurnMetricsData`
 - `event_time` — timestamp
-- foreign keys: `tenant_id`, `app_key`, `character_id`, `session_id`, `interaction_id`
+- account, character, session, and interaction identifiers
 - `value` — numeric measurement (or null for count-only metrics)
-- `tags` — JSON blob with `visibility`, `bq_tier`, `provider`, `voice_provider`, and metric-specific attributes (p50/p95/p99/max for `*.turn_summary` metrics, etc.)
+- `tags` — structured metadata such as `provider`, `voice_provider`, and metric-specific attributes (p50/p95/p99/max for `*.turn_summary` metrics, etc.)
 
 To discover what's queryable for your account: `client.catalog()` returns the metric names + types + units + descriptions visible at your plan tier.
 
