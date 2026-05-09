@@ -68,9 +68,13 @@ async function discoverDrilldownTargets(client: ConvaiAnalytics) {
   const sessionId = sessions.sessions[0]?.sessionId;
   if (!sessionId) return { sessionId: undefined, interactionId: undefined };
 
-  const detail = await retryRateLimit(() => client.sessions.get(sessionId));
-  const interactionId = detail.events.find((event) => event.interactionId)?.interactionId;
-  return { sessionId, interactionId };
+  for (const session of sessions.sessions) {
+    const detail = await retryRateLimit(() => client.sessions.get(session.sessionId));
+    const interactionId = detail.events.find((event) => event.interactionId)?.interactionId;
+    if (interactionId) return { sessionId: session.sessionId, interactionId };
+  }
+
+  return { sessionId, interactionId: undefined };
 }
 
 function argsFor(
