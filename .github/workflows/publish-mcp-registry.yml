@@ -22,7 +22,6 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: "22"
-          registry-url: "https://registry.npmjs.org"
           cache: "npm"
           cache-dependency-path: |
             packages/typescript/package-lock.json
@@ -73,12 +72,16 @@ jobs:
           }
           NODE
 
-      - name: Verify npm publish authentication
+      - name: Configure npm publish authentication
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NODE_AUTH_TOKEN || secrets.NPM_TOKEN }}
         run: |
-          test -n "$NODE_AUTH_TOKEN" || {
-            echo "NODE_AUTH_TOKEN is empty. Configure an npm automation token for this workflow before publishing."
-            exit 1
-          }
+          if [ -n "$NODE_AUTH_TOKEN" ]; then
+            echo "//registry.npmjs.org/:_authToken=${NODE_AUTH_TOKEN}" > ~/.npmrc
+            npm whoami
+          else
+            echo "No npm token secret configured; relying on npm Trusted Publishing via GitHub OIDC."
+          fi
 
       - name: Publish TypeScript SDK to npm
         run: npm publish --access public --provenance
