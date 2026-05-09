@@ -107,6 +107,26 @@ test("timeseries: GETs /timeseries with measure / granularity / group_by", async
   assert.equal(result.points.length, 2);
 });
 
+test("timeseries: serializes SDK camelCase measure/group aliases to REST snake_case", async () => {
+  const { client, calls } = buildClient(SAMPLE_TIMESERIES);
+  await client.timeseries({
+    measure: "uniqueSessions",
+    groupBy: "characterId",
+    segment: "endToEndTurnLatency",
+    range: "last_30d",
+  });
+  assertCall(calls[0]!, {
+    method: "GET",
+    pathname: "/v1/analytics/timeseries",
+    query: {
+      measure: "unique_sessions",
+      group_by: "character_id",
+      segment: "end_to_end_turn_latency",
+      range: "last_30d",
+    },
+  });
+});
+
 // ---------- breakdown ----------
 
 test("breakdown: GETs /breakdown with all filter dimensions", async () => {
@@ -140,6 +160,26 @@ test("breakdown: GETs /breakdown with all filter dimensions", async () => {
   });
   assert.equal(result.rows.length, 2);
   assert.equal(result.rows[0]!.group, "llm");
+});
+
+test("breakdown: serializes SDK camelCase measure/group aliases to REST snake_case", async () => {
+  const { client, calls } = buildClient(SAMPLE_BREAKDOWN);
+  await client.breakdown({
+    measure: "uniqueSessions",
+    groupBy: "characterId",
+    segment: "endToEndTurnLatency",
+    range: "last_30d",
+  });
+  assertCall(calls[0]!, {
+    method: "GET",
+    pathname: "/v1/analytics/breakdown",
+    query: {
+      measure: "unique_sessions",
+      group_by: "character_id",
+      segment: "end_to_end_turn_latency",
+      range: "last_30d",
+    },
+  });
 });
 
 // ---------- catalog ----------

@@ -21,6 +21,7 @@ Runnable scripts in [`recipes/charts/`](../recipes/charts/) that turn API respon
 - Python recipes use [Plotly](https://plotly.com/python/) — saves to HTML by default; pass `--png` to render via Kaleido.
 - Every recipe accepts the same env vars as the SDK (`CONVAI_API_KEY`, `CONVAI_ANALYTICS_BASE_URL`).
 - Every recipe is self-contained — no shared utility module — so agents can read one file and run it.
+- Reliability charts should use error metrics (`metricNamePrefix: "error."`) and dropped-persistence metrics today. Do not render a live status distribution from `group_by=status` unless the returned rows contain real non-empty status groups.
 
 ## Adding a new recipe
 

@@ -99,7 +99,9 @@ Where percentiles apply, all of `p50`, `p75`, `p90`, `p95`, `p99` are available;
 
 ## Group-by dimensions
 
-`GET /breakdown` accepts `groupBy` for any of:
+SDK and MCP calls use camelCase names. Direct REST calls use snake_case query keys and canonical snake_case values. For example, SDK code uses `client.breakdown({ groupBy: "characterId", measure: "uniqueSessions" })`; the equivalent REST query is `GET /v1/analytics/breakdown?group_by=character_id&measure=unique_sessions`.
+
+`client.breakdown(...)` accepts `groupBy` for any of:
 
 - `processor` — ASR / LLM / TTS / Neurosync / etc.
 - `provider` / `voiceProvider` — OpenAI, Anthropic, ElevenLabs, ...
@@ -109,6 +111,10 @@ Where percentiles apply, all of `p50`, `p75`, `p90`, `p95`, `p99` are available;
 - `interactionType`
 - `status`
 - `metricName`
+
+Raw REST callers should use `processor`, `provider`, `voice_provider`, `model`, `character_id`, `metric_name`, `metric_type`, `app_key`, `experience_id`, or `status` as `group_by` values.
+
+Status breakdowns are forward-compatible with status-tagged telemetry. If `group_by=status` returns only an empty group or no rows, treat that as unavailable status data rather than synthesizing ok/error/timeout/cancelled values.
 
 ## Why `breakdown` and not `errors-by-component` / `provider-comparison` / `usage-summary`?
 

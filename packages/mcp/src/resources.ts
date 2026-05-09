@@ -42,6 +42,8 @@ Common measures:
 Common dimensions:
 - processor, provider, voiceProvider, model, characterId, appKey, experienceId, endUserId, status.
 
+Status is only useful when the returned rows contain real non-empty status groups. If status-grouped results are empty or contain an empty group, report a no-data state instead of inventing ok/error/timeout/cancelled values.
+
 For production readiness, start with get_latency_percentile_chart, get_latency_threshold_chart, get_component_latency_breakdown, and get_error_trend.`,
   "convai://analytics/docs/authentication": `# Convai Analytics Authentication
 

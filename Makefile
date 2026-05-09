@@ -1,4 +1,4 @@
-.PHONY: help sync-openapi sync-openapi-local check-openapi gen-types ts-install ts-build ts-test ts-lint e2e-stg mcp-install mcp-build mcp-test mcp-lint mcp-smoke py-install py-test py-lint cli-install cli-build clean
+.PHONY: help sync-openapi sync-openapi-local check-openapi gen-types ts-install ts-build ts-test ts-lint e2e-stg mcp-install mcp-build mcp-test mcp-lint mcp-smoke package-check py-install py-test py-lint cli-install cli-build clean
 
 # Production source-of-truth — what `sync-openapi` curls in CI / local dev when
 # the API is reachable. Override via env to point at a different deploy.
@@ -27,6 +27,7 @@ help:
 	@echo "  make mcp-test            Run MCP unit tests"
 	@echo "  make mcp-lint            Lint + typecheck MCP"
 	@echo "  make mcp-smoke           No-key MCP startup smoke"
+	@echo "  make package-check       Verify npm package archives exclude node_modules"
 	@echo "  make py-install          Install Python SDK in editable mode"
 	@echo "  make py-test             Run Python tests"
 	@echo "  make py-lint             Ruff + mypy on Python SDK"
@@ -104,6 +105,9 @@ mcp-lint:
 
 mcp-smoke:
 	cd packages/mcp && npm run smoke:no-key
+
+package-check:
+	node scripts/check-npm-packages.mjs
 
 # Typecheck the example scripts and chart recipes against the live SDK
 # source. Catches bitrot: a method renamed or a type tightened in the SDK
