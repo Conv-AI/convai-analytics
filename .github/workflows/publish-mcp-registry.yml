@@ -83,17 +83,28 @@ jobs:
             echo "No npm token secret configured; relying on npm Trusted Publishing via GitHub OIDC."
           fi
 
-      - name: Publish TypeScript SDK to npm
-        run: npm publish --access public --provenance
-        working-directory: packages/typescript
+      - name: Publish npm packages
+        run: |
+          set -euo pipefail
 
-      - name: Publish MCP package to npm
-        run: npm publish --access public --provenance
-        working-directory: packages/mcp
+          publish_if_missing() {
+            local dir="$1"
+            local name
+            local version
+            name="$(node -p "require('./${dir}/package.json').name")"
+            version="$(node -p "require('./${dir}/package.json').version")"
 
-      - name: Publish CLI package to npm
-        run: npm publish --access public --provenance
-        working-directory: cli
+            if npm view "${name}@${version}" version >/dev/null 2>&1; then
+              echo "${name}@${version} already published; skipping."
+              return 0
+            fi
+
+            (cd "$dir" && npm publish --access public --provenance)
+          }
+
+          publish_if_missing packages/typescript
+          publish_if_missing packages/mcp
+          publish_if_missing cli
 
       - name: Install mcp-publisher
         run: |

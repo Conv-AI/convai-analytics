@@ -18,6 +18,11 @@
     "observability"
   ],
   "homepage": "https://github.com/Conv-AI/convai-analytics/tree/main/cli#readme",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Conv-AI/convai-analytics.git",
+    "directory": "cli"
+  },
   "bugs": {
     "url": "https://github.com/Conv-AI/convai-analytics/issues"
   },
