@@ -48,6 +48,8 @@ The metrics that show up in 90% of customer queries.
 | `session.connect` / `session.disconnect` / `session.reconnect` | `ProcessingMetricsData` | PUBLIC | Session lifecycle events. |
 | `interaction.interrupted` / `interaction.cancelled` | `ProcessingMetricsData` | PUBLIC | Turn-lifecycle non-success terminals. |
 
+For aggregate reliability charts today, prefer `client.errors.overTime(...)`, `client.errors.summary(...)`, and `metricNamePrefix: "error."`. The `status` group-by dimension is reserved for status-tagged telemetry; if it returns only an empty group, show a no-data state instead of demo ok/error/timeout/cancelled values.
+
 ## Per-processor breakdown
 
 When `groupBy=processor` is used in `client.breakdown(...)`, processor values are:
@@ -61,5 +63,6 @@ When `groupBy=processor` is used in `client.breakdown(...)`, processor values ar
 - **"what's my LLM provider mix?"** → `client.breakdown({ groupBy: "provider", segment: "llmMetrics" })`.
 - **"errors over time"** → `client.timeseries({ measure: "count", metricNamePrefix: "error." })`.
 - **"audio minutes used by experience"** → `client.usage.summary({ groupBy: "experienceId" })`.
+- **"usage by character name"** → `client.usage.summary({ groupBy: "characterId" })` returns stable character IDs today; map names separately until character-name enrichment lands.
 
 The catalog endpoint also returns `units` and `description` for every metric — agents should fall back to that when picking which metric to query.

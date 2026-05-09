@@ -85,6 +85,25 @@ jobs:
       - run: make mcp-build
       - run: make mcp-smoke
 
+  package-archives:
+    name: Package archives exclude installed dependencies
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "npm"
+          cache-dependency-path: |
+            packages/typescript/package-lock.json
+            cli/package-lock.json
+            packages/mcp/package-lock.json
+      - run: make ts-install
+      - run: make ts-build
+      - run: make mcp-install
+      - run: make mcp-build
+      - run: make package-check
+
   python:
     name: Python — lint, typecheck, test
     runs-on: ubuntu-latest

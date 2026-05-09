@@ -102,6 +102,8 @@ Reliability tools:
 - `generate_reliability_summary_chart`
 - `generate_reliability_trends_chart`
 
+These reliability tools use error and dropped-persistence metrics that are available today. If an agent asks for a status distribution, only use `group_by=status` when the returned rows contain real non-empty status groups; otherwise report that status-tagged aggregate telemetry is not available for that range.
+
 Usage and concurrency tools:
 
 - `get_usage_trends`

@@ -636,6 +636,32 @@ Convenience facades:
 - `client.usage.summary(...)`
 - `client.usage.interactions(...)`
 
+## SDK And REST Parameter Names
+
+Use camelCase in the TypeScript SDK and MCP prompts. The SDK translates request keys and common measure/group values at the HTTP boundary:
+
+```ts
+await client.timeseries({
+  measure: "uniqueSessions",
+  groupBy: "characterId",
+  range: "last_30d",
+});
+```
+
+If you call the REST API directly, use snake_case query keys and canonical snake_case values:
+
+```bash
+curl -H "CONVAI-API-KEY: $CONVAI_API_KEY" \
+  "https://analytics-api.convai.com/v1/analytics/timeseries?range=last_30d&measure=unique_sessions&group_by=character_id"
+
+curl -H "CONVAI-API-KEY: $CONVAI_API_KEY" \
+  "https://analytics-api.convai.com/v1/analytics/breakdown?range=last_30d&measure=unique_sessions&group_by=character_id"
+```
+
+The public API accepts common SDK-style aliases for compatibility, but documentation uses the canonical REST form so scripts, dashboards, and agents have one stable wire format.
+
+Status breakdowns (`group_by=status`) require telemetry rows that include status metadata. If a status breakdown returns only an empty group or no rows, treat it as a no-data state rather than rendering demo values. Character usage breakdowns currently return stable character IDs; display-name enrichment is planned as a backward-compatible addition.
+
 ## Development Commands
 
 ```bash
@@ -644,6 +670,7 @@ make ts-build            # build TypeScript SDK + CLI
 make ts-test             # run TypeScript unit tests
 make ts-lint             # ESLint + TypeScript typecheck
 make ts-typecheck-recipes # typecheck examples and chart recipes
+make package-check       # verify npm package archives exclude node_modules
 
 make py-install          # install Python SDK dev env
 make py-test             # run Python tests
