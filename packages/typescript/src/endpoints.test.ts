@@ -13,7 +13,13 @@ import {
   SAMPLE_BREAKDOWN,
   SAMPLE_CATALOG,
   SAMPLE_CUBE_QUERY,
+  SAMPLE_FIRST_RESPONSE_BREAKDOWN,
+  SAMPLE_FIRST_RESPONSE_MARKERS,
+  SAMPLE_FIRST_RESPONSE_SETTINGS,
+  SAMPLE_FIRST_RESPONSE_SUMMARY,
+  SAMPLE_FIRST_RESPONSE_TIMESERIES,
   SAMPLE_INTERACTION,
+  SAMPLE_INTERACTION_FIRST_RESPONSE,
   SAMPLE_REGRESSION,
   SAMPLE_SESSION_DETAIL,
   SAMPLE_SESSION_LIST,
@@ -245,6 +251,87 @@ test("interactions.get: GETs /interactions/{id}", async () => {
   assert.equal(result.interactionId, "int_1");
   assert.equal(result.spans.length, 1);
   assert.equal(result.spans[0]!.processor, "asr");
+});
+
+// ---------- firstResponse ----------
+
+test("firstResponse.summary: GETs /first-response/summary with SLA params", async () => {
+  const { client, calls } = buildClient(SAMPLE_FIRST_RESPONSE_SUMMARY);
+  const result = await client.firstResponse.summary({
+    characterId: "char_a",
+    mode: "voice_to_voice_animation",
+    turnScope: "all",
+    latencyKind: "primary",
+    range: "last_24h",
+  });
+  assertCall(calls[0]!, {
+    method: "GET",
+    pathname: "/v1/analytics/first-response/summary",
+    query: {
+      character_id: "char_a",
+      mode: "voice_to_voice_animation",
+      turn_scope: "all",
+      latency_kind: "primary",
+      range: "last_24h",
+    },
+  });
+  assert.equal(result.stats.p95Ms, 900);
+});
+
+test("firstResponse.timeseries: serializes groupBy and warm turn scope", async () => {
+  const { client, calls } = buildClient(SAMPLE_FIRST_RESPONSE_TIMESERIES);
+  await client.firstResponse.timeseries({
+    characterId: "char_a",
+    groupBy: "settings_hash",
+    turnScope: "warm",
+    granularity: "hour",
+    range: "last_7d",
+  });
+  assertCall(calls[0]!, {
+    method: "GET",
+    pathname: "/v1/analytics/first-response/timeseries",
+    query: {
+      character_id: "char_a",
+      group_by: "settings_hash",
+      turn_scope: "warm",
+      granularity: "hour",
+      range: "last_7d",
+    },
+  });
+});
+
+test("firstResponse.breakdown/markers/settings/interaction hit curated paths", async () => {
+  const b = buildClient(SAMPLE_FIRST_RESPONSE_BREAKDOWN);
+  await b.client.firstResponse.breakdown({ characterId: "char_a", groupBy: "mode" });
+  assertCall(b.calls[0]!, {
+    method: "GET",
+    pathname: "/v1/analytics/first-response/breakdown",
+    query: { character_id: "char_a", group_by: "mode" },
+  });
+
+  const m = buildClient(SAMPLE_FIRST_RESPONSE_MARKERS);
+  await m.client.firstResponse.markers({ characterId: "char_a" });
+  assertCall(m.calls[0]!, {
+    method: "GET",
+    pathname: "/v1/analytics/first-response/markers",
+    query: { character_id: "char_a" },
+  });
+
+  const s = buildClient(SAMPLE_FIRST_RESPONSE_SETTINGS);
+  await s.client.firstResponse.settings("settings/abc", { characterId: "char_a" });
+  assert.equal(
+    s.calls[0]!.url.pathname,
+    "/v1/analytics/first-response/settings/settings%2Fabc",
+  );
+  assert.equal(s.calls[0]!.url.searchParams.get("character_id"), "char_a");
+
+  const i = buildClient(SAMPLE_INTERACTION_FIRST_RESPONSE);
+  const waterfall = await i.client.firstResponse.interaction("int/1");
+  assert.equal(
+    i.calls[0]!.url.pathname,
+    "/v1/analytics/interactions/int%2F1/first-response",
+  );
+  assert.equal(waterfall.settingsHash, "settings_abc");
 });
 
 // ---------- regressionDetection (plan-gated) ----------

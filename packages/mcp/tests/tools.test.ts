@@ -14,6 +14,12 @@ const EXPECTED_TOOLS = [
   "list_sessions",
   "get_session_timeline",
   "get_interaction_trace",
+  "get_first_response_summary",
+  "get_first_response_timeseries",
+  "get_first_response_breakdown",
+  "get_first_response_markers",
+  "get_first_response_settings",
+  "get_interaction_first_response",
   "get_p95_latency_over_time",
   "get_latency_percentile_series",
   "get_latency_percentile_chart",
@@ -155,7 +161,15 @@ function argsFor(name: string): Record<string, unknown> {
       return { sessionId: "s_1", range: "last_24h" };
     case "get_interaction_trace":
     case "generate_interaction_waterfall":
+    case "get_interaction_first_response":
       return { interactionId: "i_1" };
+    case "get_first_response_summary":
+    case "get_first_response_timeseries":
+    case "get_first_response_breakdown":
+    case "get_first_response_markers":
+      return { characterId: "char_1", range: "last_24h" };
+    case "get_first_response_settings":
+      return { settingsHash: "settings_abc", characterId: "char_1" };
     case "advanced_query":
       return { query: { measures: ["SessionMetrics.count"] } };
     default:
@@ -237,6 +251,66 @@ function fakeClient(): ConvaiAnalytics {
     ],
     meta: { sampleCount: 2 },
   };
+  const firstResponseSummary = {
+    characterId: "char_1",
+    turnScope: "all",
+    latencyKind: "primary",
+    stats: { count: 10, p50Ms: 500, p95Ms: 900, p99Ms: 1200 },
+    meta: { sampleCount: 10 },
+  };
+  const firstResponseTimeseries = {
+    characterId: "char_1",
+    turnScope: "all",
+    latencyKind: "primary",
+    granularity: "hour",
+    points: [
+      {
+        bucketStart: "2026-05-01T00:00:00.000Z",
+        stats: { count: 5, p50Ms: 500, p95Ms: 900, p99Ms: 1200 },
+      },
+    ],
+    meta: { sampleCount: 5 },
+  };
+  const firstResponseBreakdown = {
+    characterId: "char_1",
+    turnScope: "all",
+    latencyKind: "primary",
+    groupBy: "mode",
+    rows: [{ group: "voice_to_voice_animation", stats: { count: 5, p95Ms: 900 } }],
+    meta: { sampleCount: 5 },
+  };
+  const firstResponseMarkers = {
+    characterId: "char_1",
+    turnScope: "all",
+    latencyKind: "primary",
+    markers: [
+      {
+        timestamp: "2026-05-01T00:00:00.000Z",
+        currentSettingsHash: "settings_abc",
+        changedSettingCategories: ["llm"],
+        currentSettingsUrl: "/v1/analytics/first-response/settings/settings_abc",
+      },
+    ],
+    meta: { sampleCount: 1 },
+  };
+  const firstResponseSettings = {
+    characterId: "char_1",
+    settingsHash: "settings_abc",
+    settingsSnapshotVersion: 1,
+    settings: { llm: { model: "gpt-test" } },
+    categoryHashes: { llm: "hash-llm" },
+    meta: { sampleCount: 1 },
+  };
+  const interactionFirstResponse = {
+    interactionId: "i_1",
+    characterId: "char_1",
+    mode: "voice_to_voice_animation",
+    latencyKind: "all_modalities_ready",
+    durationMs: 900,
+    settingsHash: "settings_abc",
+    spans: [{ stage: "tts_first_audio_ready", durationMs: 300, includedInSum: true }],
+    meta: { sampleCount: 1 },
+  };
 
   return {
     summary: async () => summary,
@@ -251,6 +325,14 @@ function fakeClient(): ConvaiAnalytics {
     },
     interactions: {
       get: async () => trace,
+    },
+    firstResponse: {
+      summary: async () => firstResponseSummary,
+      timeseries: async () => firstResponseTimeseries,
+      breakdown: async () => firstResponseBreakdown,
+      markers: async () => firstResponseMarkers,
+      settings: async () => firstResponseSettings,
+      interaction: async () => interactionFirstResponse,
     },
     latency: {
       byComponent: async () => breakdown,

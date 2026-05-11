@@ -13,6 +13,7 @@ import { registerTimeseries } from "./commands/timeseries.js";
 import { registerSessions } from "./commands/sessions.js";
 import { registerInteraction } from "./commands/interaction.js";
 import { registerChart } from "./commands/chart.js";
+import { registerFirstResponse } from "./commands/first-response.js";
 
 const program = new Command();
 
@@ -31,6 +32,7 @@ registerSummary(program);
 registerTimeseries(program);
 registerSessions(program);
 registerInteraction(program);
+registerFirstResponse(program);
 registerChart(program);
 
 program.parseAsync(process.argv).catch((err: unknown) => {

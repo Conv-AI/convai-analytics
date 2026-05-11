@@ -50,6 +50,9 @@ export interface AnalyticsTool {
 const RELATIVE_RANGES = ["last_15m", "last_1h", "last_6h", "last_24h", "last_7d", "last_30d"] as const;
 const GRANULARITIES = ["minute", "hour", "day"] as const;
 const LATENCY_PERCENTILES = ["p50", "p95", "p99"] as const;
+const TURN_SCOPES = ["all", "warm", "cold"] as const;
+const FIRST_RESPONSE_LATENCY_KINDS = ["primary", "first_text", "first_voice", "first_animation", "all_modalities_ready"] as const;
+const FIRST_RESPONSE_GROUP_BY = ["mode", "breakdown_kind", "stage", "settings_hash", "turn_scope", "provider", "model", "status", "character_id"] as const;
 const USAGE_METRICS = ["uniqueSessions", "uniqueTurns", "uniqueEndUsers"] as const;
 const PROVIDER_COMPONENTS = ["llm", "tts", "asr", "neurosync"] as const;
 
@@ -60,6 +63,9 @@ const optionalId = z.string().min(1).optional();
 const limit = z.number().int().min(1).max(500).default(25);
 const percentile = z.enum(LATENCY_PERCENTILES).default("p95");
 const p95Threshold = z.number().positive().default(3000);
+const turnScope = z.enum(TURN_SCOPES).default("all").describe("Turn scope: all includes turn 1, warm is turn_id > 1, cold is turn_id = 1.");
+const firstResponseLatencyKind = z.enum(FIRST_RESPONSE_LATENCY_KINDS).default("primary").describe("Primary maps by observed mode: voice+animation -> all_modalities_ready, voice -> first_voice, text -> first_text.");
+const firstResponseGroupBy = z.enum(FIRST_RESPONSE_GROUP_BY).default("mode");
 
 const commonFilters = {
   range,
@@ -91,8 +97,8 @@ function pickNumber(args: ToolArgs, key: string): number | undefined {
   return typeof value === "number" && Number.isFinite(value) ? value : undefined;
 }
 
-function pickRange(args: ToolArgs): RelativeRange {
-  return (pickString(args, "range") ?? "last_24h") as RelativeRange;
+function pickRange(args: ToolArgs, fallback: RelativeRange = "last_24h"): RelativeRange {
+  return (pickString(args, "range") ?? fallback) as RelativeRange;
 }
 
 function baseParams(args: ToolArgs): TimeseriesParams {
@@ -128,6 +134,21 @@ function sessionListParams(args: ToolArgs): SessionListParams {
     sort: (pickString(args, "sort") ?? "recent") as SessionListParams["sort"],
     limit: pickNumber(args, "limit") ?? 25,
     cursor: pickString(args, "cursor"),
+  };
+}
+
+function firstResponseBaseParams(args: ToolArgs) {
+  return {
+    characterId: pickString(args, "characterId")!,
+    mode: pickString(args, "mode"),
+    range: pickRange(args),
+    turnScope: (pickString(args, "turnScope") ?? "all") as "all" | "warm" | "cold",
+    latencyKind: (pickString(args, "latencyKind") ?? "primary") as
+      | "primary"
+      | "first_text"
+      | "first_voice"
+      | "first_animation"
+      | "all_modalities_ready",
   };
 }
 
@@ -265,6 +286,115 @@ export const ANALYTICS_TOOLS: AnalyticsTool[] = [
       interactionId: z.string().min(1).describe("Convai interaction id."),
     },
     handler: (client, args) => client.interactions.get(pickString(args, "interactionId")!),
+  },
+  {
+    name: "get_first_response_summary",
+    title: "Get First Response Summary",
+    description: "Character-first, mode-specific first-response SLA P50/P95/P99. Defaults include turn 1; use turnScope=warm for turn_id > 1.",
+    inputSchema: {
+      characterId: z.string().min(1).describe("Character id. Required for SLA views."),
+      mode: optionalId.describe("Optional observed mode, e.g. voice_to_voice_animation."),
+      range,
+      turnScope,
+      latencyKind: firstResponseLatencyKind,
+    },
+    handler: (client, args) => client.firstResponse.summary(firstResponseBaseParams(args)),
+  },
+  {
+    name: "get_first_response_timeseries",
+    title: "Get First Response Timeseries",
+    description: "Bucketed first-response SLA P50/P95/P99 for one character and optional observed mode.",
+    inputSchema: {
+      characterId: z.string().min(1).describe("Character id. Required for SLA views."),
+      mode: optionalId.describe("Optional observed mode, e.g. voice_to_voice_animation."),
+      range,
+      granularity,
+      turnScope,
+      latencyKind: firstResponseLatencyKind,
+      groupBy: firstResponseGroupBy.optional(),
+    },
+    handler: (client, args) =>
+      client.firstResponse.timeseries({
+        ...firstResponseBaseParams(args),
+        granularity: (pickString(args, "granularity") ?? "hour") as "minute" | "hour" | "day",
+        groupBy: pickString(args, "groupBy") as
+          | "mode"
+          | "breakdown_kind"
+          | "stage"
+          | "settings_hash"
+          | "turn_scope"
+          | "provider"
+          | "model"
+          | "status"
+          | "character_id"
+          | undefined,
+      }),
+  },
+  {
+    name: "get_first_response_breakdown",
+    title: "Get First Response Breakdown",
+    description: "Group first-response SLA P50/P95/P99 for one character by mode, settings_hash, stage, provider, model, status, or turn_scope.",
+    inputSchema: {
+      characterId: z.string().min(1).describe("Character id. Required for SLA views."),
+      mode: optionalId.describe("Optional observed mode, e.g. voice_to_voice_animation."),
+      range,
+      turnScope,
+      latencyKind: firstResponseLatencyKind,
+      groupBy: firstResponseGroupBy,
+      limit: z.number().int().min(1).max(500).default(50),
+    },
+    handler: (client, args) =>
+      client.firstResponse.breakdown({
+        ...firstResponseBaseParams(args),
+        groupBy: pickString(args, "groupBy") as
+          | "mode"
+          | "breakdown_kind"
+          | "stage"
+          | "settings_hash"
+          | "turn_scope"
+          | "provider"
+          | "model"
+          | "status"
+          | "character_id",
+        limit: pickNumber(args, "limit") ?? 50,
+      }),
+  },
+  {
+    name: "get_first_response_markers",
+    title: "Get First Response Settings Markers",
+    description: "Return settings-hash change markers for one character's first-response latency graph.",
+    inputSchema: {
+      characterId: z.string().min(1).describe("Character id. Required for SLA views."),
+      mode: optionalId.describe("Optional observed mode, e.g. voice_to_voice_animation."),
+      range,
+      turnScope,
+      latencyKind: firstResponseLatencyKind,
+    },
+    handler: (client, args) => client.firstResponse.markers(firstResponseBaseParams(args)),
+  },
+  {
+    name: "get_first_response_settings",
+    title: "Get First Response Settings Snapshot",
+    description: "Fetch one sanitized latency-relevant settings snapshot by settings hash.",
+    inputSchema: {
+      settingsHash: z.string().min(1).describe("Settings hash from a first-response row or marker."),
+      characterId: optionalId.describe("Optional character id filter."),
+      range: z.enum(RELATIVE_RANGES).default("last_30d").describe("Relative lookup window."),
+    },
+    handler: (client, args) =>
+      client.firstResponse.settings(pickString(args, "settingsHash")!, {
+        characterId: pickString(args, "characterId"),
+        range: pickRange(args, "last_30d"),
+      }),
+  },
+  {
+    name: "get_interaction_first_response",
+    title: "Get Interaction First Response Waterfall",
+    description: "Return the additive first-response waterfall for one interaction id.",
+    inputSchema: {
+      interactionId: z.string().min(1).describe("Convai interaction id."),
+    },
+    handler: (client, args) => client.firstResponse.interaction(pickString(args, "interactionId")!),
   },
   {
     name: "get_p95_latency_over_time",

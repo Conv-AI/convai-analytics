@@ -103,6 +103,161 @@ export type CubeQueryResponse = components["schemas"]["CubeQueryResponse"];
 export type CubeFilter = components["schemas"]["CubeFilter"];
 export type CubeTimeDimension = components["schemas"]["CubeTimeDimension"];
 
+// ---------- First-response SLA surface ----------
+
+export type TurnScope = "all" | "warm" | "cold";
+export type FirstResponseLatencyKind =
+  | "primary"
+  | "first_text"
+  | "first_voice"
+  | "first_animation"
+  | "all_modalities_ready";
+export type FirstResponseGroupBy =
+  | "mode"
+  | "breakdown_kind"
+  | "stage"
+  | "settings_hash"
+  | "turn_scope"
+  | "provider"
+  | "model"
+  | "status"
+  | "character_id";
+
+export interface FirstResponseStats {
+  count: number;
+  avgMs?: number | null;
+  p50Ms?: number | null;
+  p95Ms?: number | null;
+  p99Ms?: number | null;
+}
+
+export interface FirstResponseBaseParams extends TimeRange {
+  characterId: string;
+  mode?: string;
+  turnScope?: TurnScope;
+  latencyKind?: FirstResponseLatencyKind;
+}
+
+export type FirstResponseSummaryParams = FirstResponseBaseParams;
+
+export interface FirstResponseSummaryResponse {
+  characterId: string;
+  mode?: string | null;
+  turnScope: TurnScope;
+  latencyKind: FirstResponseLatencyKind;
+  stats: FirstResponseStats;
+  meta: ResponseMeta;
+}
+
+export interface FirstResponseTimeseriesParams extends FirstResponseBaseParams {
+  granularity?: "minute" | "hour" | "day";
+  groupBy?: FirstResponseGroupBy;
+}
+
+export interface FirstResponseTimeseriesPoint {
+  bucketStart: string;
+  group?: string | null;
+  stats: FirstResponseStats;
+}
+
+export interface FirstResponseTimeseriesResponse {
+  characterId: string;
+  mode?: string | null;
+  turnScope: TurnScope;
+  latencyKind: FirstResponseLatencyKind;
+  granularity: "minute" | "hour" | "day";
+  points: FirstResponseTimeseriesPoint[];
+  meta: ResponseMeta;
+}
+
+export interface FirstResponseBreakdownParams extends FirstResponseBaseParams {
+  groupBy?: FirstResponseGroupBy;
+  limit?: number;
+}
+
+export interface FirstResponseBreakdownRow {
+  group: string;
+  stats: FirstResponseStats;
+}
+
+export interface FirstResponseBreakdownResponse {
+  characterId: string;
+  mode?: string | null;
+  turnScope: TurnScope;
+  latencyKind: FirstResponseLatencyKind;
+  groupBy: FirstResponseGroupBy;
+  rows: FirstResponseBreakdownRow[];
+  meta: ResponseMeta;
+}
+
+export type FirstResponseMarkersParams = FirstResponseBaseParams;
+
+export interface FirstResponseMarker {
+  timestamp: string;
+  priorSettingsHash?: string | null;
+  currentSettingsHash: string;
+  changedSettingCategories: string[];
+  priorSettingsUrl?: string | null;
+  currentSettingsUrl: string;
+}
+
+export interface FirstResponseMarkersResponse {
+  characterId: string;
+  mode?: string | null;
+  turnScope: TurnScope;
+  latencyKind: FirstResponseLatencyKind;
+  markers: FirstResponseMarker[];
+  meta: ResponseMeta;
+}
+
+export interface FirstResponseSettingsParams extends TimeRange {
+  characterId?: string;
+}
+
+export interface FirstResponseSettingsResponse {
+  characterId?: string | null;
+  settingsHash: string;
+  settingsSnapshotVersion?: number | null;
+  settings: Record<string, unknown>;
+  categoryHashes: Record<string, string>;
+  firstSeenAt?: string | null;
+  lastSeenAt?: string | null;
+  meta: ResponseMeta;
+}
+
+export interface FirstResponseWaterfallSpan {
+  stage?: string | null;
+  sequenceIndex?: number | null;
+  startBoundary?: string | null;
+  endBoundary?: string | null;
+  startOffsetMs?: number | null;
+  endOffsetMs?: number | null;
+  durationMs: number;
+  includedInSum: boolean;
+  service?: string | null;
+  provider?: string | null;
+  model?: string | null;
+  status?: string | null;
+  tags?: Record<string, unknown> | null;
+}
+
+export interface InteractionFirstResponse {
+  interactionId: string;
+  sessionId?: string | null;
+  characterId?: string | null;
+  turnId?: number | null;
+  criticalPathId?: string | null;
+  mode?: string | null;
+  inputModalities?: string | null;
+  outputMode?: string | null;
+  outputModality?: string | null;
+  latencyKind?: string | null;
+  durationMs?: number | null;
+  settingsHash?: string | null;
+  spans: FirstResponseWaterfallSpan[];
+  meta: ResponseMeta;
+}
+
 // ---------- Param shapes (hand-written, narrow to honored fields) ----------
 
 /** `/summary` only honors `range` + the three id filters today. */
