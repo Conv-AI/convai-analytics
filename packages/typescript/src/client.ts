@@ -33,6 +33,7 @@ import { LatencyFacade } from "./resources/latency.js";
 import { ProvidersFacade } from "./resources/providers.js";
 import { ErrorsFacade } from "./resources/errors.js";
 import { UsageFacade } from "./resources/usage.js";
+import { FirstResponse } from "./resources/first-response.js";
 
 const DEFAULT_BASE_URL = "https://analytics-api.convai.com/v1/analytics";
 const SDK_VERSION = "0.2.0";
@@ -169,6 +170,7 @@ export class ConvaiAnalytics {
   readonly providers: ProvidersFacade;
   readonly errors: ErrorsFacade;
   readonly usage: UsageFacade;
+  readonly firstResponse: FirstResponse;
 
   constructor(options: ConvaiAnalyticsOptions = {}) {
     const apiKey = options.apiKey ?? process.env.CONVAI_API_KEY;
@@ -192,6 +194,7 @@ export class ConvaiAnalytics {
     this.providers = new ProvidersFacade(this);
     this.errors = new ErrorsFacade(this);
     this.usage = new UsageFacade(this);
+    this.firstResponse = new FirstResponse(this);
   }
 
   // ---------- Direct REST mappings ----------

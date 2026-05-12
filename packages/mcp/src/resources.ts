@@ -15,7 +15,7 @@ const RESOURCE_TEXT: Record<string, string> = {
 
 Convai Analytics is account-scoped telemetry for production character experiences. Use it to answer customer questions about sessions, interactions, latency, reliability, provider/model performance, character usage, and end-user reach.
 
-The headline latency metric is voice.user_to_bot_latency. It measures end-to-end latency from the end-user audio input side to the first bot audio byte. Use P50/P95/P99 for aggregate latency distribution, and interaction traces for per-request breakdowns.
+The customer-facing SLA latency surface is first-response analytics: character-first, mode-specific P50/P95/P99 over observed input/output modality combinations. Defaults include turn 1 because customers experience cold and warm turns; use turnScope=warm only when explicitly comparing turn_id > 1 behavior. The legacy voice.user_to_bot_latency metric is compatibility-only and should not be used for new SLA reporting.
 
 Core entities:
 - A session is a user-character conversation window.
@@ -23,11 +23,12 @@ Core entities:
 - A component span is one processor/provider/model portion of an interaction, such as LLM, TTS, STT, VAD, NeuroSync, transport, memory, or moderation.
 - Unique end users are available when the application sends a stable end_user_id, for example through speaker id integration.
 
-Prefer curated MCP tools for common questions. Use advanced_query only when a question cannot be answered by summary, timeseries, breakdown, sessions, interactions, or the convenience tools.`,
+Prefer curated MCP tools for common questions. Use advanced_query only when a question cannot be answered by summary, first-response, timeseries, breakdown, sessions, interactions, or the convenience tools.`,
   "convai://analytics/docs/metrics-reference": `# Convai Analytics Metrics Reference
 
 Common metrics and measures:
-- voice.user_to_bot_latency: headline end-to-end latency for user to first bot audio byte.
+- first-response primary latency: character-first SLA latency. primary maps voice+animation to all_modalities_ready, voice-only to first_voice, and text-only to first_text.
+- voice.user_to_bot_latency: deprecated compatibility metric for user to first bot audio. Prefer first-response tools for SLA reporting.
 - db.error_persist_dropped: dropped error-persistence event count.
 - tts.voice_provider: TTS provider attribution.
 - LLMService.*: LLM model/provider latency family.
@@ -44,7 +45,7 @@ Common dimensions:
 
 Status is only useful when the returned rows contain real non-empty status groups. If status-grouped results are empty or contain an empty group, report a no-data state instead of inventing ok/error/timeout/cancelled values.
 
-For production readiness, start with get_latency_percentile_chart, get_latency_threshold_chart, get_component_latency_breakdown, and get_error_trend.`,
+For production readiness, start with get_first_response_summary, get_first_response_timeseries, get_first_response_markers, get_interaction_first_response, and get_error_trend.`,
   "convai://analytics/docs/authentication": `# Convai Analytics Authentication
 
 Set CONVAI_API_KEY to a Convai API key for the account you want to analyze. The MCP server sends this key only to the public Convai Analytics API through the public TypeScript SDK.

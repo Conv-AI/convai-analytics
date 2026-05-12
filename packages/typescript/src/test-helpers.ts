@@ -192,3 +192,97 @@ export const SAMPLE_CUBE_QUERY: components["schemas"]["CubeQueryResponse"] = {
   data: [{ "SessionMetrics.uniqueSessions": 100 }],
   meta: META,
 };
+
+export const SAMPLE_FIRST_RESPONSE_SUMMARY = {
+  characterId: "char_a",
+  mode: "voice_to_voice_animation",
+  turnScope: "all",
+  latencyKind: "primary",
+  stats: { count: 10, avgMs: 650, p50Ms: 500, p95Ms: 900, p99Ms: 1200 },
+  meta: META,
+};
+
+export const SAMPLE_FIRST_RESPONSE_TIMESERIES = {
+  characterId: "char_a",
+  mode: "voice_to_voice_animation",
+  turnScope: "all",
+  latencyKind: "primary",
+  granularity: "hour",
+  points: [
+    {
+      bucketStart: "2026-05-05T15:00:00+00:00",
+      stats: { count: 5, p50Ms: 500, p95Ms: 900, p99Ms: 1200 },
+    },
+  ],
+  meta: META,
+};
+
+export const SAMPLE_FIRST_RESPONSE_BREAKDOWN = {
+  characterId: "char_a",
+  mode: null,
+  turnScope: "warm",
+  latencyKind: "primary",
+  groupBy: "mode",
+  rows: [
+    {
+      group: "voice_to_voice_animation",
+      stats: { count: 5, p50Ms: 500, p95Ms: 900, p99Ms: 1200 },
+    },
+  ],
+  meta: META,
+};
+
+export const SAMPLE_FIRST_RESPONSE_MARKERS = {
+  characterId: "char_a",
+  mode: null,
+  turnScope: "all",
+  latencyKind: "primary",
+  markers: [
+    {
+      timestamp: "2026-05-05T15:00:00+00:00",
+      priorSettingsHash: null,
+      currentSettingsHash: "settings_abc",
+      changedSettingCategories: ["llm"],
+      priorSettingsUrl: null,
+      currentSettingsUrl: "/v1/analytics/first-response/settings/settings_abc",
+    },
+  ],
+  meta: META,
+};
+
+export const SAMPLE_FIRST_RESPONSE_SETTINGS = {
+  characterId: "char_a",
+  settingsHash: "settings_abc",
+  settingsSnapshotVersion: 1,
+  settings: { llm: { model: "gpt-test" } },
+  categoryHashes: { llm: "hash-llm" },
+  firstSeenAt: "2026-05-05T15:00:00+00:00",
+  lastSeenAt: "2026-05-05T15:00:00+00:00",
+  meta: META,
+};
+
+export const SAMPLE_INTERACTION_FIRST_RESPONSE = {
+  interactionId: "int_1",
+  sessionId: "s_first",
+  characterId: "char_a",
+  turnId: 2,
+  criticalPathId: "critical_1",
+  mode: "voice_to_voice_animation",
+  inputModalities: "voice",
+  outputMode: "voice_animation",
+  outputModality: "animation",
+  latencyKind: "all_modalities_ready",
+  durationMs: 900,
+  settingsHash: "settings_abc",
+  spans: [
+    {
+      stage: "tts_first_audio_ready",
+      sequenceIndex: 1,
+      startBoundary: "llm_first_text_handoff",
+      endBoundary: "tts_first_audio_ready",
+      durationMs: 300,
+      includedInSum: true,
+    },
+  ],
+  meta: META,
+};

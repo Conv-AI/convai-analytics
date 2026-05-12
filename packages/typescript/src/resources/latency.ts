@@ -14,6 +14,12 @@ import {
 import type {
   BreakdownResponse,
   CommonFilters,
+  FirstResponseBreakdownParams,
+  FirstResponseBreakdownResponse,
+  FirstResponseSummaryParams,
+  FirstResponseSummaryResponse,
+  FirstResponseTimeseriesParams,
+  FirstResponseTimeseriesResponse,
   Percentile,
   TimeRange,
   TimeseriesResponse,
@@ -53,8 +59,8 @@ export class LatencyFacade {
 
   /**
    * "Plot p50/p95/p99 end-to-end latency over time."
-   * Delegates to `timeseries(measure=p95Value, metricName=voice.user_to_bot_latency)`.
-   * NOTE: returns one timeseries per call; loop over `percentiles` to plot multiple.
+   * Deprecated compatibility path for the legacy `voice.user_to_bot_latency`
+   * metric. Prefer `latency.firstResponse*` for SLA reporting.
    */
   overTime(params: LatencyOverTimeParams = {}): Promise<TimeseriesResponse> {
     const { percentiles = ["p95"], granularity, ...rest } = params;
@@ -65,5 +71,26 @@ export class LatencyFacade {
       granularity,
       ...rest,
     });
+  }
+
+  /** Character-first, mode-specific first-response SLA summary. */
+  firstResponseSummary(
+    params: FirstResponseSummaryParams,
+  ): Promise<FirstResponseSummaryResponse> {
+    return this.#client.firstResponse.summary(params);
+  }
+
+  /** Character-first, mode-specific first-response SLA time series. */
+  firstResponseOverTime(
+    params: FirstResponseTimeseriesParams,
+  ): Promise<FirstResponseTimeseriesResponse> {
+    return this.#client.firstResponse.timeseries(params);
+  }
+
+  /** Character-first, mode-specific first-response SLA breakdown. */
+  firstResponseBreakdown(
+    params: FirstResponseBreakdownParams,
+  ): Promise<FirstResponseBreakdownResponse> {
+    return this.#client.firstResponse.breakdown(params);
   }
 }

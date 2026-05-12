@@ -102,8 +102,8 @@ export const GROUP_BY = {
 
 export type GroupByKey = typeof GROUP_BY[keyof typeof GROUP_BY];
 
-/** Well-known `metric_name` values. Pass to `metricName` filter on
- *  `/timeseries` or `/breakdown`. */
+/** Well-known legacy `metric_name` values. `voice.user_to_bot_latency` is
+ * compatibility-only; use `client.firstResponse.*` for SLA reporting. */
 export const METRIC_NAMES = {
   voiceUserToBotLatency: "voice.user_to_bot_latency",
 } as const;
