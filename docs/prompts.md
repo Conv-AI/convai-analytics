@@ -14,6 +14,7 @@ Drop-in natural-language prompts for the most common analytics questions. Each r
 - [p95-latency-trend.md](../recipes/prompts/p95-latency-trend.md) — track p95 end-to-end latency over time, optionally split by character.
 - [component-bottlenecks.md](../recipes/prompts/component-bottlenecks.md) — which processor (LLM / TTS / Neurosync / ...) contributes most to p95.
 - [trace-explanation.md](../recipes/prompts/trace-explanation.md) — explain what happened in a single interaction id.
+- [convai-evals-report-drilldown.md](../recipes/prompts/convai-evals-report-drilldown.md) — use a `convai-evals` report to drive session, interaction, and latency-breakdown analytics calls.
 
 ## Errors & reliability
 

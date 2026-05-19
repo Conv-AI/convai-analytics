@@ -30,6 +30,7 @@ The SDK calls Convai's hosted analytics API at `https://analytics-api.convai.com
 - **A CLI** in `cli`.
 - **Prompt recipes** in `recipes/prompts` that tell an AI agent exactly which calls to make for common analytics questions.
 - **Chart recipes** in `recipes/charts` that generate Vega-Lite specs or Plotly timelines for latency, usage, reliability, and concurrency analysis.
+- **Convai Evals integration notes** in [`docs/convai-evals.md`](docs/convai-evals.md) for using `convai-evals` report IDs with sessions, interactions, and latency breakdown APIs.
 
 ## What This Is Not
 
